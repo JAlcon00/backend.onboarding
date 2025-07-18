@@ -1,0 +1,49 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.out
+*.pid
+
+# Environment
+.env
+
+# Build
+dist/
+build/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# VSCode
+.vscode/
+
+# Docker
+docker/*.env
+docker-compose.override.yml
+
+# Keyfiles / Secrets
+keyfiles/
+keyfiles/*.json
+
+# Test
+coverage/
+test-results/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Others
+*.swp
+*.swo
+*.bak
+*.tmp
