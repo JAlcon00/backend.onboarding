@@ -1,4 +1,5 @@
-import { documentoService } from '../services/documento.service';
+import { DocumentoService } from '../modules/documento/documento.service';
+import { logInfo, logError } from '../config/logger';
 import cron from 'node-cron';
 
 /**
@@ -7,23 +8,22 @@ import cron from 'node-cron';
  */
 export const documentosVencidosJob = () => {
   cron.schedule('0 6 * * *', async () => {
-    console.log('🔄 Iniciando job de actualización de documentos vencidos...');
+    logInfo('Iniciando job de actualización de documentos vencidos');
     
     try {
-      const documentosActualizados = await documentoService.actualizarDocumentosVencidos();
-      console.log(`✅ Job completado: ${documentosActualizados} documentos marcados como vencidos`);
+      const documentosVencidos = await DocumentoService.getDocumentosVencidos();
       
-      // Obtener documentos próximos a vencer
-      const proximosAVencer = await documentoService.getDocumentosProximosAVencer(30);
-      if (proximosAVencer.length > 0) {
-        console.log(`⚠️  ${proximosAVencer.length} documentos próximos a vencer en los próximos 30 días`);
-        
-        // Aquí podrías enviar notificaciones por email
-        // await notificationService.enviarAlertasVencimiento(proximosAVencer);
+      // Actualizar documentos vencidos
+      let documentosActualizados = 0;
+      for (const documento of documentosVencidos) {
+        await DocumentoService.updateEstatusDocumento(documento.documento_id, 'vencido');
+        documentosActualizados++;
       }
       
+      logInfo('Job de documentos vencidos completado', { documentosActualizados });
+      
     } catch (error) {
-      console.error('❌ Error en job de documentos vencidos:', error);
+      logError('Error en job de documentos vencidos', error as Error);
     }
   });
 };
@@ -34,16 +34,16 @@ export const documentosVencidosJob = () => {
  */
 export const regenerarUrlsJob = () => {
   cron.schedule('0 2 * * *', async () => {
-    console.log('🔄 Iniciando job de regeneración de URLs firmadas...');
+    logInfo('Iniciando job de regeneración de URLs firmadas');
     
     try {
       // Aquí podrías implementar la lógica para regenerar URLs
       // que estén próximas a expirar (por ejemplo, URLs con menos de 24 horas)
       
-      console.log('✅ Job de regeneración de URLs completado');
+      logInfo('Job de regeneración de URLs completado');
       
     } catch (error) {
-      console.error('❌ Error en job de regeneración de URLs:', error);
+      logError('Error en job de regeneración de URLs', error as Error);
     }
   });
 };
@@ -52,10 +52,10 @@ export const regenerarUrlsJob = () => {
  * Inicializa todos los jobs relacionados con documentos
  */
 export const inicializarJobsDocumentos = () => {
-  console.log('🚀 Inicializando jobs de documentos...');
+  logInfo('Inicializando jobs de documentos');
   
   documentosVencidosJob();
   regenerarUrlsJob();
   
-  console.log('✅ Jobs de documentos inicializados correctamente');
+  logInfo('Jobs de documentos inicializados correctamente');
 };

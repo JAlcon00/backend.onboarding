@@ -4,9 +4,14 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
+import { CacheService } from './config/cache';
+import { logInfo, logError } from './config/logger';
 import routes from './routes';
 import { errorHandler, notFoundHandler, asyncHandler } from './middlewares/error.middleware';
 import { handleMulterError } from './middlewares/validation.middleware';
+import { metricsMiddleware, errorTrackingMiddleware } from './middlewares/metrics.middleware';
+import { responseSizeMiddleware, memoryCleanupMiddleware, autoPaginationMiddleware } from './middlewares/performance.middleware';
+import { readOperationLimiter, writeOperationLimiter } from './middlewares/rateLimiter.middleware';
 
 // Importar modelos para establecer relaciones
 import './modules/cliente/cliente.model';
@@ -25,6 +30,11 @@ import './modules/usuario/usuario.model';
 
 const app = express();
 
+// Inicializar caché
+CacheService.init().catch((error) => {
+  logError('Error al inicializar caché', error);
+});
+
 // Configuración de seguridad
 app.use(helmet({
   contentSecurityPolicy: {
@@ -40,19 +50,20 @@ app.use(helmet({
 // Compresión gzip
 app.use(compression());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // limitar cada IP a 100 requests por windowMs
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes desde esta IP, intente de nuevo más tarde.'
-  },
-  standardHeaders: true, // Retornar rate limit info en los headers `RateLimit-*`
-  legacyHeaders: false, // Desactivar headers `X-RateLimit-*`
-});
+// Middlewares de rendimiento
+app.use(responseSizeMiddleware(10 * 1024 * 1024)); // 10MB max response size
+app.use(memoryCleanupMiddleware);
+app.use(autoPaginationMiddleware(50, 200)); // default 50, max 200
 
-app.use('/api/', limiter);
+// Rate limiting específico por tipo de operación
+app.use((req, res, next) => {
+  if (req.method === 'GET') {
+    return readOperationLimiter(req, res, next);
+  } else if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    return writeOperationLimiter(req, res, next);
+  }
+  next();
+});
 
 // Configuración de CORS
 app.use(cors({
@@ -90,26 +101,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware para logging de requests
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    const start = Date.now();
-    
-    // Interceptar el final de la respuesta
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
-    });
-    
-    next();
-  });
-}
+// Middleware para logging de requests y métricas
+app.use(metricsMiddleware);
 
 // Rutas principales
 app.use(routes);
 
 // Middleware para errores de multer
 app.use(handleMulterError);
+
+// Middleware para rastreo de errores
+app.use(errorTrackingMiddleware);
 
 // Middleware para rutas no encontradas
 app.use(notFoundHandler);

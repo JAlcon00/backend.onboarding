@@ -4,6 +4,7 @@ import { documentoService } from '../../services/documento.service';
 import { Documento } from './documento.model';
 import { DocumentoTipo } from './documentoTipo.model';
 import { Cliente } from '../cliente/cliente.model';
+import { logInfo, logError, logDebug } from '../../config/logger';
 import { 
   createDocumentoSchema, 
   updateDocumentoSchema,
@@ -16,17 +17,12 @@ import {
 export class DocumentoController {
   // Crear documento
   public static createDocumento = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    console.log('🔍 DEBUG: Datos recibidos para crear documento:', req.body);
-    
     const validatedData = createDocumentoSchema.parse(req.body);
-    console.log('🔍 DEBUG: Datos validados:', validatedData);
     
     // Verificar que el cliente existe
     const cliente = await Cliente.findByPk(validatedData.cliente_id);
-    console.log('🔍 DEBUG: Cliente encontrado:', cliente ? `ID: ${cliente.cliente_id}, tipo: ${cliente.tipo_persona}` : 'No encontrado');
     
     if (!cliente) {
-      console.log('❌ DEBUG: Cliente no encontrado');
       res.status(404).json({
         success: false,
         message: 'Cliente no encontrado',
@@ -36,10 +32,8 @@ export class DocumentoController {
     
     // Verificar que el tipo de documento existe
     const tipoDocumento = await DocumentoTipo.findByPk(validatedData.documento_tipo_id);
-    console.log('🔍 DEBUG: Tipo de documento encontrado:', tipoDocumento ? `ID: ${tipoDocumento.documento_tipo_id}, nombre: ${tipoDocumento.nombre}, aplica_pf: ${tipoDocumento.aplica_pf}` : 'No encontrado');
     
     if (!tipoDocumento) {
-      console.log('❌ DEBUG: Tipo de documento no encontrado');
       res.status(404).json({
         success: false,
         message: 'Tipo de documento no encontrado',
@@ -49,11 +43,8 @@ export class DocumentoController {
     
     // Verificar que el tipo de documento aplica al tipo de persona
     const aplicaTipoPersona = tipoDocumento.aplicaATipoPersona(cliente.tipo_persona);
-    console.log(`🔍 DEBUG: ¿Aplica a ${cliente.tipo_persona}? ${aplicaTipoPersona}`);
-    console.log(`🔍 DEBUG: Campos del tipo: aplica_pf=${tipoDocumento.aplica_pf}, aplica_pfae=${tipoDocumento.aplica_pfae}, aplica_pm=${tipoDocumento.aplica_pm}`);
     
     if (!aplicaTipoPersona) {
-      console.log(`❌ DEBUG: Tipo de documento no aplica a ${cliente.tipo_persona}`);
       res.status(400).json({
         success: false,
         message: `El documento ${tipoDocumento.nombre} no aplica para ${cliente.tipo_persona}`,
@@ -77,7 +68,12 @@ export class DocumentoController {
     
     const documento = await Documento.create(documentoData);
     
-    console.log('✅ DEBUG: Documento creado exitosamente');
+    logInfo('Documento creado exitosamente', { 
+      documento_id: documento.documento_id,
+      cliente_id: documento.cliente_id,
+      tipo: tipoDocumento.nombre 
+    });
+    
     res.status(201).json({
       success: true,
       message: 'Documento creado exitosamente',

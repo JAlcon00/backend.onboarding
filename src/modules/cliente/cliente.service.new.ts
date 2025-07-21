@@ -4,7 +4,6 @@ import { CreateClienteInput, UpdateClienteInput } from './cliente.schema';
 import { Op, Transaction } from 'sequelize';
 import { TransactionService } from '../../services/transaction.service';
 import { CacheService, CacheKeys, CacheTTL } from '../../config/cache';
-const { sequelize } = require('../../config/database');
 
 export class ClienteService {
   // Crear cliente con validaciones de negocio y transacciones
@@ -347,68 +346,5 @@ export class ClienteService {
   private static validarCURP(curp: string): boolean {
     const curpPattern = /^[A-Z]{1}[AEIOU]{1}[A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HM](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]$/;
     return curpPattern.test(curp);
-  }
-
-  // Obtener estadísticas generales
-  static async getEstadisticasGenerales() {
-    const cacheKey = CacheKeys.DASHBOARD_STATS;
-    
-    let estadisticas = await CacheService.get(cacheKey);
-    
-    if (!estadisticas) {
-      const totalClientes = await Cliente.count();
-      const clientesPorTipo = await Cliente.findAll({
-        attributes: [
-          'tipo_persona',
-          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
-        ],
-        group: ['tipo_persona'],
-        raw: true
-      });
-      
-      const clientesPorEstado = await Cliente.findAll({
-        attributes: [
-          'estado',
-          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
-        ],
-        group: ['estado'],
-        raw: true
-      });
-      
-      estadisticas = {
-        total_clientes: totalClientes,
-        clientes_por_tipo: clientesPorTipo,
-        clientes_por_estado: clientesPorEstado,
-        fecha_actualizacion: new Date().toISOString()
-      };
-      
-      // Guardar en caché por 1 hora
-      await CacheService.set(cacheKey, estadisticas, CacheTTL.LONG);
-    }
-    
-    return estadisticas;
-  }
-
-  // Verificar si puede proceder con onboarding
-  static async puedeProcedeConOnboarding(clienteId: number) {
-    const cliente = await this.getClienteById(clienteId);
-    
-    if (!cliente) {
-      return {
-        puede_proceder: false,
-        razon: 'Cliente no encontrado'
-      };
-    }
-
-    const errores = this.validarIntegridadDatos(cliente);
-    const completitud = cliente.getPorcentajeCompletitud();
-    
-    return {
-      puede_proceder: errores.length === 0 && completitud >= 80,
-      razon: errores.length > 0 ? 'Datos incompletos o inválidos' : 
-             completitud < 80 ? 'Completitud insuficiente' : 'Listo para proceder',
-      errores: errores,
-      completitud: completitud
-    };
   }
 }

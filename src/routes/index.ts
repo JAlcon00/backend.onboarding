@@ -1,5 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { requestIdMiddleware, timeoutMiddleware } from '../middlewares/error.middleware';
+import { CacheService } from '../config/cache';
+import { HealthController } from '../controllers/health.controller';
+import { healthCheckLimiter } from '../middlewares/rateLimiter.middleware';
+import { logHttp } from '../config/logger';
 import clienteRoutes from '../modules/cliente/cliente.routes';
 import documentoRoutes from '../modules/documento/documento.routes';
 import solicitudRoutes from '../modules/solicitud/solicitud.routes';
@@ -19,11 +23,22 @@ router.use('/api', (req: Request, res: Response, next) => {
     const duration = Date.now() - startTime;
     const requestId = req.get('X-Request-ID');
     
-    console.log(`[${requestId}] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+    logHttp(`${req.method} ${req.path}`, {
+      requestId,
+      statusCode: res.statusCode,
+      duration: `${duration}ms`,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
   });
   
   next();
 });
+
+// Rutas de health check con rate limiting específico
+router.get('/health', healthCheckLimiter, HealthController.healthCheck);
+router.get('/health/simple', healthCheckLimiter, HealthController.simpleHealthCheck);
+router.post('/health/gc', healthCheckLimiter, HealthController.forceGarbageCollection);
 
 // Rutas principales
 router.use('/api/clientes', clienteRoutes);
@@ -31,24 +46,23 @@ router.use('/api/documentos', documentoRoutes);
 router.use('/api/solicitudes', solicitudRoutes);
 router.use('/api/usuarios', usuarioRoutes);
 
-// Ruta de salud del sistema
-router.get('/health', (req: Request, res: Response) => {
-  const healthCheck = {
-    success: true,
-    message: 'API funcionando correctamente',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-    memory: process.memoryUsage(),
-    system: {
-      platform: process.platform,
-      arch: process.arch,
-      node: process.version,
-    },
-  };
+// Ruta para limpiar caché (solo para desarrollo)
+router.post('/cache/clear', (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(403).json({
+      success: false,
+      message: 'No disponible en producción'
+    });
+    return;
+  }
 
-  res.json(healthCheck);
+  const pattern = req.body.pattern || '*';
+  CacheService.delPattern(pattern);
+  
+  res.json({
+    success: true,
+    message: `Caché limpiado para patrón: ${pattern}`
+  });
 });
 
 // Ruta para información de la API

@@ -62,7 +62,8 @@ async function testDbConnection() {
 // Ejecutar la prueba automáticamente si este archivo es el punto de entrada
 if (require.main === module) {
     testDbConnection();
-
 }
 
+// Exportaciones CommonJS y ES6
 module.exports = { sequelize, testDbConnection };
+export { sequelize, testDbConnection };

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { Usuario } from './usuario.model';
 import { 
   createUsuarioSchema, 
@@ -12,43 +12,51 @@ import {
   usuarioFilterSchema 
 } from './usuario.schema';
 import { env } from '../../config/env';
+import { TransactionService } from '../../services/transaction.service';
+import { CacheService, CacheKeys, CacheTTL } from '../../config/cache';
 
 export class UsuarioController {
   // Crear usuario
   public static createUsuario = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const validatedData = createUsuarioSchema.parse(req.body);
     
-    // Verificar que el username y correo no existan
-    const existingUser = await Usuario.findOne({
-      where: {
-        [Op.or]: [
-          { username: validatedData.username },
-          { correo: validatedData.correo }
-        ]
-      }
-    });
-    
-    if (existingUser) {
-      res.status(400).json({
-        success: false,
-        message: 'El username o correo ya están en uso',
+    await TransactionService.executeInTransaction(async (transaction: Transaction) => {
+      // Verificar que el username y correo no existan
+      const existingUser = await Usuario.findOne({
+        where: {
+          [Op.or]: [
+            { username: validatedData.username },
+            { correo: validatedData.correo }
+          ]
+        },
+        transaction
       });
-      return;
-    }
-    
-    const { password, ...userData } = validatedData;
-    const usuario = await Usuario.create({
-      ...userData,
-      password_hash: password, // Se hasheará automáticamente en el hook
-    });
-    
-    // No retornar la contraseña
-    const { password_hash, ...usuarioResponse } = usuario.toJSON();
-    
-    res.status(201).json({
-      success: true,
-      message: 'Usuario creado exitosamente',
-      data: usuarioResponse,
+      
+      if (existingUser) {
+        res.status(400).json({
+          success: false,
+          message: 'El username o correo ya están en uso',
+        });
+        return;
+      }
+      
+      const { password, ...userData } = validatedData;
+      const usuario = await Usuario.create({
+        ...userData,
+        password_hash: password, // Se hasheará automáticamente en el hook
+      }, { transaction });
+      
+      // No retornar la contraseña
+      const { password_hash, ...usuarioResponse } = usuario.toJSON();
+      
+      // Invalidar caché de usuarios
+      await CacheService.delPattern('usuarios:*');
+      
+      res.status(201).json({
+        success: true,
+        message: 'Usuario creado exitosamente',
+        data: usuarioResponse,
+      });
     });
   });
 

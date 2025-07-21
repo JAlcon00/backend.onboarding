@@ -1,0 +1,39 @@
+# ===========================================
+# CONFIGURACIÓN DE LINE ENDINGS
+# ===========================================
+
+# Manejar automáticamente line endings
+* text=auto
+
+# Archivos que deben usar LF (Unix) siempre
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Archivos que deben mantener sus line endings originales
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+
+# Scripts de shell deben usar LF
+*.sh text eol=lf
+
+# Archivos de configuración
+.env* text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf

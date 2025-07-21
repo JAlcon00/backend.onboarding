@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { Solicitud } from './solicitud.model';
 import { SolicitudProducto } from './solicitudProducto.model';
 import { Cliente } from '../cliente/cliente.model';
+import { SolicitudService } from './solicitud.service';
 import { 
   createSolicitudSchema, 
   updateSolicitudSchema,
@@ -12,51 +13,40 @@ import {
   solicitudFilterSchema,
   productoIdSchema
 } from './solicitud.schema';
+import { logInfo, logError } from '../../config/logger';
 
 export class SolicitudController {
   // Crear solicitud con productos
   public static createSolicitud = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const validatedData = createSolicitudSchema.parse(req.body);
     
-    // Verificar que el cliente existe
-    const cliente = await Cliente.findByPk(validatedData.cliente_id);
-    if (!cliente) {
-      res.status(404).json({
-        success: false,
-        message: 'Cliente no encontrado',
+    try {
+      const solicitud = await SolicitudService.createSolicitud(
+        {
+          cliente_id: validatedData.cliente_id,
+          estatus: 'iniciada',
+        },
+        validatedData.productos
+      );
+      
+      // Obtener solicitud completa con productos
+      const solicitudCompleta = await SolicitudService.getSolicitudById(solicitud.solicitud_id);
+      
+      logInfo('Solicitud creada exitosamente', {
+        solicitud_id: solicitud.solicitud_id,
+        cliente_id: solicitud.cliente_id,
+        productos_count: validatedData.productos.length
       });
-      return;
+      
+      res.status(201).json({
+        success: true,
+        message: 'Solicitud creada exitosamente',
+        data: solicitudCompleta,
+      });
+    } catch (error) {
+      logError('Error al crear solicitud', error instanceof Error ? error : new Error(String(error)));
+      throw error;
     }
-    
-    // Crear la solicitud
-    const solicitud = await Solicitud.create({
-      cliente_id: validatedData.cliente_id,
-      estatus: 'iniciada',
-    });
-    
-    // Crear los productos asociados
-    const productos = await Promise.all(
-      validatedData.productos.map(producto => 
-        SolicitudProducto.create({
-          solicitud_id: solicitud.solicitud_id,
-          ...producto,
-        })
-      )
-    );
-    
-    // Obtener solicitud completa con productos
-    const solicitudCompleta = await Solicitud.findByPk(solicitud.solicitud_id, {
-      include: [
-        { model: Cliente, as: 'clienteSolicitud' },
-        { model: SolicitudProducto, as: 'productos' },
-      ],
-    });
-    
-    res.status(201).json({
-      success: true,
-      message: 'Solicitud creada exitosamente',
-      data: solicitudCompleta,
-    });
   });
 
   // Obtener todas las solicitudes con filtros
@@ -118,12 +108,7 @@ export class SolicitudController {
   public static getSolicitudById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { id } = solicitudIdSchema.parse(req.params);
     
-    const solicitud = await Solicitud.findByPk(id, {
-      include: [
-        { model: Cliente, as: 'clienteSolicitud' },
-        { model: SolicitudProducto, as: 'productos' },
-      ],
-    });
+    const solicitud = await SolicitudService.getSolicitudById(Number(id));
     
     if (!solicitud) {
       res.status(404).json({
@@ -144,32 +129,39 @@ export class SolicitudController {
     const { id } = solicitudIdSchema.parse(req.params);
     const validatedData = updateSolicitudSchema.parse(req.body);
     
-    const solicitud = await Solicitud.findByPk(id);
-    
-    if (!solicitud) {
-      res.status(404).json({
-        success: false,
-        message: 'Solicitud no encontrada',
+    try {
+      if (!validatedData.estatus) {
+        res.status(400).json({
+          success: false,
+          message: 'El estatus es requerido',
+        });
+        return;
+      }
+      
+      const solicitud = await SolicitudService.updateEstatusSolicitud(Number(id), validatedData.estatus);
+      
+      logInfo('Solicitud actualizada exitosamente', {
+        solicitud_id: Number(id),
+        nuevo_estatus: validatedData.estatus
       });
-      return;
-    }
-    
-    // Solo permitir cambios si la solicitud puede ser modificada
-    if (!solicitud.puedeSerModificada() && validatedData.estatus !== 'en_revision' && validatedData.estatus !== 'aprobada' && validatedData.estatus !== 'rechazada') {
-      res.status(400).json({
-        success: false,
-        message: 'La solicitud no puede ser modificada en su estado actual',
+      
+      res.json({
+        success: true,
+        message: 'Solicitud actualizada exitosamente',
+        data: solicitud,
       });
-      return;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('no encontrada')) {
+        res.status(404).json({
+          success: false,
+          message: 'Solicitud no encontrada',
+        });
+        return;
+      }
+      
+      logError('Error al actualizar solicitud', error instanceof Error ? error : new Error(String(error)));
+      throw error;
     }
-    
-    await solicitud.update(validatedData);
-    
-    res.json({
-      success: true,
-      message: 'Solicitud actualizada exitosamente',
-      data: solicitud,
-    });
   });
 
   // Eliminar solicitud

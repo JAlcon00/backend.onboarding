@@ -98,16 +98,7 @@ export class ClienteController {
   public static getClienteById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { id } = clienteIdSchema.parse(req.params);
     
-    const cliente = await Cliente.findByPk(id, {
-      include: [
-        { 
-          model: IngresoCliente, 
-          as: 'ingresos',
-          order: [['fecha_registro', 'DESC']]
-        },
-        // TODO: Agregar relaciones con documentos y solicitudes cuando estén configuradas
-      ],
-    });
+    const cliente = await ClienteService.getClienteById(id);
     
     if (!cliente) {
       res.status(404).json({
