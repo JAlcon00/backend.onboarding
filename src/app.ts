@@ -3,9 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { CacheService } from './config/cache';
 import { logInfo, logError } from './config/logger';
+import { swaggerSpec, swaggerUiOptions } from './config/swagger';
 import routes from './routes';
 import { errorHandler, notFoundHandler, asyncHandler } from './middlewares/error.middleware';
 import { handleMulterError } from './middlewares/validation.middleware';
@@ -103,6 +105,15 @@ app.use((req, res, next) => {
 
 // Middleware para logging de requests y métricas
 app.use(metricsMiddleware);
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+
+// Endpoint para JSON de Swagger
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // Rutas principales
 app.use(routes);
