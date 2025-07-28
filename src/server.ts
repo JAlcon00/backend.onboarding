@@ -1,4 +1,5 @@
 import app from './app';
+import cors from 'cors';
 import { env } from './config/env';
 import { logInfo, logError, logWarning } from './config/logger';
 import { Server } from 'http';
@@ -10,7 +11,14 @@ let server: Server;
 
 // Función para iniciar el servidor
 async function startServer() {
+
   try {
+    // Configurar CORS antes de cualquier ruta
+    app.use(cors({
+      origin: 'http://localhost:5173', // Cambia si tu frontend está en otro origen
+      credentials: true
+    }));
+
     // Probar conexión a la base de datos
     await testDbConnection();
     logInfo('Conexión a la base de datos establecida');
