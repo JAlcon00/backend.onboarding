@@ -14,6 +14,7 @@ import { handleMulterError } from './middlewares/validation.middleware';
 import { metricsMiddleware, errorTrackingMiddleware } from './middlewares/metrics.middleware';
 import { responseSizeMiddleware, memoryCleanupMiddleware, autoPaginationMiddleware } from './middlewares/performance.middleware';
 import { readOperationLimiter, writeOperationLimiter } from './middlewares/rateLimiter.middleware';
+import { requestIdMiddleware, errorContextMiddleware } from './middlewares/request-id.middleware';
 
 // Importar modelos para establecer relaciones
 import './modules/cliente/cliente.model';
@@ -37,7 +38,7 @@ const app = express();
 app.use(cors());
 
 // Inicializar caché
-CacheService.init().catch((error) => {
+CacheService.init().catch((error: Error) => {
   logError('Error al inicializar caché', error);
 });
 
@@ -52,6 +53,9 @@ app.use(helmet({
     },
   },
 }));
+
+// Middleware de correlación de logs (debe ir temprano)
+app.use(requestIdMiddleware);
 
 // Compresión gzip
 app.use(compression());
@@ -123,6 +127,9 @@ app.use(handleMulterError);
 
 // Middleware para rastreo de errores
 app.use(errorTrackingMiddleware);
+
+// Middleware de contexto de error para auditoría
+app.use(errorContextMiddleware);
 
 // Middleware para rutas no encontradas
 app.use(notFoundHandler);

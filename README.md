@@ -1,6 +1,16 @@
 # 🏦 OnboardingDigital Backend API
 
-# 🏦 OnboardingDigital Backend API
+## 🔒 IMPORTANTE - Configuración de Seguridad
+
+⚠️ **ANTES de ejecutar**, configura las variables de entorno siguiendo las [mejores prácticas de seguridad](./SECURITY_FIXES.md).
+
+```bash
+# 1. Copia la plantilla de configuración
+cp .env.example .env.local
+
+# 2. Configura credenciales ÚNICAS para cada entorno
+# NUNCA uses credenciales de producción en desarrollo
+```
 
 ## 📋 Descripción Técnica
 
@@ -1752,8 +1762,7 @@ GET /api/admin/exportar-datos?modulos=cliente,solicitud&formato=json&fecha_inici
 **Licencia:** Propietaria - Uso interno exclusivo  
 
 **Contacto Técnico:**
-- **Email:** dev-team@empresa.com
-- **Slack:** #onboarding-dev
+- **Email:** jalmanza@grupoolson.com
 - **Documentación:** https://docs.empresa.com/onboarding-api
 
 ---

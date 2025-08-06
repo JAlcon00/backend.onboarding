@@ -22,20 +22,86 @@ const colors = {
 
 winston.addColors(colors);
 
+// Campos sensibles que deben ser scrubbed
+const PII_FIELDS = [
+  'password', 'pwd', 'pass', 'secret', 'token', 'jwt', 'authorization',
+  'creditCard', 'credit_card', 'ssn', 'social_security', 'email', 'phone',
+  'address', 'ip', 'userAgent', 'user_agent', 'curp', 'rfc'
+];
+
+/**
+ * Función para sanitizar datos sensibles (PII)
+ */
+const scrubPII = (obj: any): any => {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'string') {
+    // Verificar si la cadena contiene patrones sensibles
+    if (/password|token|secret|jwt/i.test(obj)) {
+      return '[REDACTED]';
+    }
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => scrubPII(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const scrubbed: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const lowerKey = key.toLowerCase();
+      
+      if (PII_FIELDS.some(field => lowerKey.includes(field))) {
+        scrubbed[key] = '[REDACTED]';
+      } else {
+        scrubbed[key] = scrubPII(value);
+      }
+    }
+    return scrubbed;
+  }
+  
+  return obj;
+};
+
 // Formato personalizado para desarrollo
 const devFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
-  )
+  winston.format.printf((info) => {
+    let message = `${info.timestamp} ${info.level}: ${info.message}`;
+    if (info.requestId) {
+      message += ` [ReqID: ${info.requestId}]`;
+    }
+    
+    // Crear un objeto con datos adicionales sin las propiedades básicas
+    const basicKeys = ['timestamp', 'level', 'message', 'requestId'];
+    const additionalKeys = Object.keys(info).filter(key => !basicKeys.includes(key));
+    
+    if (additionalKeys.length > 0) {
+      const additionalData: any = {};
+      additionalKeys.forEach(key => {
+        additionalData[key] = (info as any)[key];
+      });
+      message += `\n${JSON.stringify(scrubPII(additionalData), null, 2)}`;
+    }
+    return message;
+  })
 );
 
-// Formato para producción
+// Formato para producción con scrubbing de PII
 const prodFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json()
+  winston.format.printf((info) => {
+    const scrubbed = scrubPII({
+      ...info,
+      environment: env.NODE_ENV,
+      service: 'onboarding-backend',
+      version: process.env.npm_package_version || '1.0.0'
+    });
+    return JSON.stringify(scrubbed);
+  })
 );
 
 // Configuración de transports

@@ -1,50 +1,11 @@
 import axios = require('axios');
 import * as dotenv from 'dotenv';
+import { CacheService, CACHE_NAMESPACES, TTL as CACHE_TTL } from './cache';
 
 // Cargar variables de entorno
 dotenv.config();
 
-// Sistema de cache simple en memoria
-class SimpleCache {
-  private cache = new Map<string, { data: any; expiry: number }>();
-  
-  set(key: string, value: any, ttlSeconds: number = 900): void {
-    const expiry = Date.now() + (ttlSeconds * 1000);
-    this.cache.set(key, { data: value, expiry });
-  }
-  
-  get(key: string): any | null {
-    const item = this.cache.get(key);
-    if (!item) return null;
-    
-    if (Date.now() > item.expiry) {
-      this.cache.delete(key);
-      return null;
-    }
-    
-    return item.data;
-  }
-  
-  delete(key: string): void {
-    this.cache.delete(key);
-  }
-  
-  clear(): void {
-    this.cache.clear();
-  }
-  
-  getStats(): any {
-    return {
-      type: 'memory',
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys())
-    };
-  }
-}
-
-const cache = new SimpleCache();
-
-// TTL constants
+// TTL constants para Gemini
 const TTL = {
   SHORT: 300,    // 5 minutos
   MEDIUM: 900,   // 15 minutos
@@ -516,7 +477,7 @@ export async function processDocument(
     
     // Verificar cache si está habilitado
     if (useCache) {
-      const cachedResult = cache.get(cacheKey);
+      const cachedResult = await CacheService.get(CACHE_NAMESPACES.GEMINI, cacheKey);
       if (cachedResult) {
         Logger.info('Resultado obtenido desde cache', { tipoDocumento });
         return cachedResult;
@@ -631,7 +592,7 @@ export async function processDocument(
 
         // Guardar en cache si está habilitado
         if (useCache) {
-          cache.set(cacheKey, analysis, TTL.MEDIUM);
+          await CacheService.set(CACHE_NAMESPACES.GEMINI, cacheKey, analysis, CACHE_TTL.MEDIUM);
         }
 
         Logger.info('Documento procesado exitosamente', {
@@ -705,9 +666,9 @@ export async function getAvailableModels(): Promise<string[]> {
 }
 
 // Función para limpiar cache de análisis
-export function clearAnalysisCache(tipoDocumento?: TipoDocumentoMexicano): void {
+export async function clearAnalysisCache(tipoDocumento?: TipoDocumentoMexicano): Promise<void> {
   try {
-    cache.clear();
+    await CacheService.clearNamespace(CACHE_NAMESPACES.GEMINI);
     Logger.info('Cache de análisis limpiado');
   } catch (error: any) {
     Logger.error('Error al limpiar cache de análisis', {
@@ -725,7 +686,7 @@ export function getUsageStats(): any {
       timeout: GEMINI_CONFIG.timeout,
       maxRetries: GEMINI_CONFIG.maxRetries
     },
-    cache: cache.getStats(),
+    cache: CacheService.getStats(),
     timestamp: new Date().toISOString()
   };
 }

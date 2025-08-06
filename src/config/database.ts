@@ -2,14 +2,15 @@ const { Sequelize } = require("sequelize");
 let env;
 try {
     env = require("./env").env;
-    // Mostrar las variables de entorno relevantes para depuración
-    console.log("Variables de entorno cargadas:", {
-        DB_HOST: env.DB_HOST,
-        DB_USER: env.DB_USER,
-        DB_PASS: env.DB_PASS ? '***' : undefined,
-        DB_NAME: env.DB_NAME,
-        DB_PORT: env.DB_PORT,
-    });
+    // Solo mostrar información de conexión en modo desarrollo y con flag de debug
+    if (env.NODE_ENV === 'development' && process.env.DEBUG_DB === 'true') {
+        console.log("Configuración de base de datos:", {
+            DB_HOST: env.DB_HOST,
+            DB_NAME: env.DB_NAME,
+            DB_PORT: env.DB_PORT,
+            // Nunca mostrar usuario, contraseña o credenciales sensibles
+        });
+    }
 } catch (error) {
     console.error("Error al cargar las variables de entorno o el esquema:", error);
     process.exit(1);
@@ -29,6 +30,17 @@ try {
             host: env.DB_HOST,
             port: env.DB_PORT,
             dialect: "mysql",
+            pool: {
+                min: env.DB_POOL_MIN,
+                max: env.DB_POOL_MAX,
+                acquire: env.DB_POOL_ACQUIRE,
+                idle: env.DB_POOL_IDLE,
+            },
+            logging: env.NODE_ENV === 'development' ? console.log : false,
+            dialectOptions: {
+                charset: 'utf8mb4',
+                collate: 'utf8mb4_unicode_ci',
+            },
         }
     );
 } catch (error) {
