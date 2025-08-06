@@ -8,6 +8,23 @@ const router = Router();
 // Todas las rutas requieren autenticación
 router.use(authenticateToken);
 
+// ==================== RUTAS ADMINISTRATIVAS NUEVAS ====================
+
+// Estadísticas y análisis (solo ADMIN+)
+router.get('/estadisticas', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), DocumentoController.getEstadisticasGenerales);
+router.get('/estadisticas/tipos', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), DocumentoController.getEstadisticasPorTipo);
+router.get('/analisis/completitud', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), DocumentoController.getAnalisisCompletitud);
+router.get('/metricas/equipo', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.getMetricasEquipo);
+
+// Gestión de tipos de documento (solo ADMIN+)
+router.post('/tipos', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.createTipoDocumento);
+router.put('/tipos/:id', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.updateTipoDocumento);
+router.delete('/tipos/:id', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.deleteTipoDocumento);
+
+// Operaciones masivas (solo ADMIN+)
+router.patch('/lote/revisar', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.revisarLoteDocumentos);
+router.get('/exportar', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), DocumentoController.exportarDatos);
+
 // Rutas especiales (deben ir antes de las rutas con parámetros)
 router.get('/tipos', DocumentoController.getTiposDocumento);
 router.get('/vencidos', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), DocumentoController.getDocumentosVencidos);
@@ -60,6 +77,7 @@ router.delete('/:id', authorizeRoles('ADMIN', 'SUPER'), DocumentoController.dele
 router.post('/subir', authorizeRoles('ADMIN', 'SUPER', 'OPERADOR'), uploadDocumento, DocumentoController.subirDocumento);
 router.get('/cliente/:clienteId/faltantes', DocumentoController.getDocumentosFaltantes);
 router.get('/cliente/:clienteId/completitud', DocumentoController.verificarCompletitud);
+router.get('/cliente/:clienteId/coherencia', authorizeRoles('ADMIN', 'SUPER', 'OPERADOR', 'AUDITOR'), DocumentoController.analizarCoherenciaCliente);
 router.post('/:documentoId/regenerar-url', DocumentoController.regenerarUrlDocumento);
 
 export default router;

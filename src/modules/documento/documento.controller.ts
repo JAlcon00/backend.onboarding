@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { documentoService } from '../../services/documento.service';
+import { geminiService } from '../../services/gemini.service';
+import { coherenciaService } from '../../services/coherencia.service';
+import { DocumentoService } from './documento.service';
 import { Documento } from './documento.model';
 import { DocumentoTipo } from './documentoTipo.model';
 import { Cliente } from '../cliente/cliente.model';
@@ -297,7 +300,7 @@ export class DocumentoController {
     });
   });
 
-  // Subir documento usando el servicio
+  // Subir documento usando el servicio Gemini
   public static subirDocumento = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { clienteId, documentoTipoId, fechaDocumento, folioSolicitud, reemplazar } = req.body;
     const file = req.file;
@@ -311,6 +314,7 @@ export class DocumentoController {
     }
 
     try {
+      // Subir el documento
       const documento = await documentoService.subirDocumento({
         clienteId: parseInt(clienteId),
         documentoTipoId: parseInt(documentoTipoId),
@@ -320,10 +324,20 @@ export class DocumentoController {
         reemplazar: reemplazar === 'true',
       });
 
+      // Analizar el documento con Gemini
+      const analysisResult = await geminiService.analyzeDocument(documento.documento_id.toString());
+
+      // Analizar coherencia con datos del cliente
+      const coherenciaResult = await coherenciaService.analizarCoherencia(parseInt(clienteId));
+
       res.status(201).json({
         success: true,
-        message: 'Documento subido exitosamente',
-        data: documento,
+        message: 'Documento subido y analizado exitosamente',
+        data: {
+          documento,
+          analysis: analysisResult,
+          coherencia: coherenciaResult,
+        },
       });
     } catch (error: any) {
       res.status(400).json({
@@ -406,6 +420,246 @@ export class DocumentoController {
       success: true,
       message: `${actualizados} documentos actualizados`,
       data: { documentosActualizados: actualizados },
+    });
+  });
+
+  // ==================== ENDPOINTS ADMINISTRATIVOS NUEVOS ====================
+
+  /**
+   * Obtener estadísticas generales de documentos para dashboard
+   */
+  public static getEstadisticasGenerales = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const filtros = {
+      fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+      fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+      tipoPersona: req.query.tipoPersona as 'PF' | 'PF_AE' | 'PM' | undefined
+    };
+    
+    const estadisticas = await DocumentoService.getEstadisticasGenerales(filtros);
+    
+    res.json({
+      success: true,
+      message: 'Estadísticas obtenidas exitosamente',
+      data: estadisticas,
+    });
+  });
+
+  /**
+   * Obtener estadísticas por tipo de documento
+   */
+  public static getEstadisticasPorTipo = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const filtros = {
+      fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+      fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+      tipoPersona: req.query.tipoPersona as 'PF' | 'PF_AE' | 'PM' | undefined
+    };
+    
+    const estadisticas = await DocumentoService.getEstadisticasPorTipo(filtros);
+    
+    res.json({
+      success: true,
+      data: estadisticas,
+    });
+  });
+
+  /**
+   * Análisis consolidado de completitud para administradores
+   */
+  public static getAnalisisCompletitud = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const filtros = {
+      tipoPersona: req.query.tipoPersona as 'PF' | 'PF_AE' | 'PM' | undefined,
+      umbralCompletitud: req.query.umbral ? parseInt(req.query.umbral as string) : 80
+    };
+    
+    const analisis = await DocumentoService.getAnalisisCompletitudConsolidado(filtros);
+    
+    res.json({
+      success: true,
+      data: analisis,
+    });
+  });
+
+  /**
+   * Métricas del equipo de revisión
+   */
+  public static getMetricasEquipo = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const filtros = {
+      fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+      fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined
+    };
+    
+    const metricas = await DocumentoService.getMetricasEquipoRevision(filtros);
+    
+    res.json({
+      success: true,
+      data: metricas,
+    });
+  });
+
+  // ==================== GESTIÓN DE TIPOS DE DOCUMENTO ====================
+
+  /**
+   * Crear nuevo tipo de documento
+   */
+  public static createTipoDocumento = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const validatedData = {
+      nombre: req.body.nombre,
+      descripcion: req.body.descripcion,
+      aplica_pf: Boolean(req.body.aplica_pf),
+      aplica_pfae: Boolean(req.body.aplica_pfae),
+      aplica_pm: Boolean(req.body.aplica_pm),
+      vigencia_dias: req.body.vigencia_dias ? parseInt(req.body.vigencia_dias) : undefined,
+      opcional: Boolean(req.body.opcional),
+      formatos_permitidos: req.body.formatos_permitidos || ['pdf'],
+      tamano_maximo_mb: req.body.tamano_maximo_mb ? parseInt(req.body.tamano_maximo_mb) : 5
+    };
+    
+    const tipoDocumento = await DocumentoService.createTipoDocumento(validatedData);
+    
+    logInfo('Tipo de documento creado', { 
+      tipo_id: tipoDocumento.documento_tipo_id,
+      nombre: tipoDocumento.nombre 
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Tipo de documento creado exitosamente',
+      data: tipoDocumento,
+    });
+  });
+
+  /**
+   * Actualizar tipo de documento
+   */
+  public static updateTipoDocumento = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = documentoIdSchema.parse(req.params);
+    
+    const updateData: any = {};
+    if (req.body.nombre) updateData.nombre = req.body.nombre;
+    if (req.body.descripcion !== undefined) updateData.descripcion = req.body.descripcion;
+    if (req.body.aplica_pf !== undefined) updateData.aplica_pf = Boolean(req.body.aplica_pf);
+    if (req.body.aplica_pfae !== undefined) updateData.aplica_pfae = Boolean(req.body.aplica_pfae);
+    if (req.body.aplica_pm !== undefined) updateData.aplica_pm = Boolean(req.body.aplica_pm);
+    if (req.body.vigencia_dias !== undefined) updateData.vigencia_dias = req.body.vigencia_dias ? parseInt(req.body.vigencia_dias) : null;
+    if (req.body.opcional !== undefined) updateData.opcional = Boolean(req.body.opcional);
+    if (req.body.formatos_permitidos) updateData.formatos_permitidos = req.body.formatos_permitidos;
+    if (req.body.tamano_maximo_mb) updateData.tamano_maximo_mb = parseInt(req.body.tamano_maximo_mb);
+    
+    const tipoDocumento = await DocumentoService.updateTipoDocumento(id, updateData);
+    
+    res.json({
+      success: true,
+      message: 'Tipo de documento actualizado exitosamente',
+      data: tipoDocumento,
+    });
+  });
+
+  /**
+   * Eliminar tipo de documento
+   */
+  public static deleteTipoDocumento = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = documentoIdSchema.parse(req.params);
+    const forzar = req.query.forzar === 'true';
+    
+    const result = await DocumentoService.deleteTipoDocumento(id, forzar);
+    
+    res.json({
+      success: true,
+      message: result.message,
+      data: { documentos_eliminados: result.documentos_eliminados },
+    });
+  });
+
+  // ==================== OPERACIONES MASIVAS ====================
+
+  /**
+   * Revisar múltiples documentos en lote
+   */
+  public static revisarLoteDocumentos = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { documento_ids, accion, comentario } = req.body;
+    const revisorId = (req as any).user?.usuario_id;
+    
+    if (!Array.isArray(documento_ids) || documento_ids.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Se requiere un arreglo de IDs de documentos',
+      });
+      return;
+    }
+    
+    if (!['aceptar', 'rechazar'].includes(accion)) {
+      res.status(400).json({
+        success: false,
+        message: 'Acción debe ser "aceptar" o "rechazar"',
+      });
+      return;
+    }
+    
+    const resultado = await DocumentoService.revisarDocumentosLote(
+      documento_ids,
+      accion,
+      comentario,
+      revisorId
+    );
+    
+    res.json({
+      success: true,
+      message: `Lote procesado: ${resultado.procesados} documentos actualizados, ${resultado.errores} errores`,
+      data: resultado,
+    });
+  });
+
+  /**
+   * Analizar coherencia entre datos del cliente y documentos
+   */
+  public static analizarCoherenciaCliente = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { clienteId } = req.params;
+
+    if (!clienteId || isNaN(parseInt(clienteId))) {
+      res.status(400).json({
+        success: false,
+        message: 'ID de cliente inválido',
+      });
+      return;
+    }
+
+    try {
+      const coherenciaResult = await coherenciaService.analizarCoherencia(parseInt(clienteId));
+
+      res.json({
+        success: true,
+        message: 'Análisis de coherencia completado',
+        data: coherenciaResult,
+      });
+    } catch (error: any) {
+      res.status(404).json({
+        success: false,
+        message: error.message || 'Error al analizar coherencia',
+      });
+    }
+  });
+
+  /**
+   * Exportar datos de documentos
+   */
+  public static exportarDatos = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const filtros = {
+      fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+      fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+      estatus: req.query.estatus ? (req.query.estatus as string).split(',') : undefined,
+      tipoPersona: req.query.tipoPersona as 'PF' | 'PF_AE' | 'PM' | undefined,
+      incluirDatosCliente: req.query.incluirCliente === 'true'
+    };
+    
+    const exportData = await DocumentoService.exportarDatosDocumentos(filtros);
+    
+    // Configurar headers para descarga
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="documentos_export_${new Date().toISOString().split('T')[0]}.json"`);
+    
+    res.json({
+      success: true,
+      data: exportData,
     });
   });
 }

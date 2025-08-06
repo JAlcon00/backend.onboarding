@@ -27,5 +27,6 @@ router.get('/:id/onboarding/verificar', ClienteController.verificarProcesoOnboar
 // Rutas para ingresos de cliente
 router.post('/:id/ingresos', authorizeRoles('ADMIN', 'SUPER', 'OPERADOR'), ClienteController.createIngresoCliente);
 router.get('/:id/ingresos', ClienteController.getIngresosCliente);
+router.get('/:id/ingresos/estadisticas', authorizeRoles('ADMIN', 'SUPER', 'AUDITOR'), ClienteController.getEstadisticasIngresos);
 
 export default router;

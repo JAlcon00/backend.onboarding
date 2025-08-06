@@ -30,7 +30,11 @@ import './modules/usuario/usuario.model';
 
 // Las asociaciones se definen ahora en cada modelo individual
 
+
 const app = express();
+
+// Configuración de CORS (debe ir antes de cualquier otro middleware)
+app.use(cors());
 
 // Inicializar caché
 CacheService.init().catch((error) => {
@@ -66,15 +70,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-// Configuración de CORS
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] // Cambiar por tu dominio en producción
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true,
-  optionsSuccessStatus: 200,
-}));
 
 // Middlewares básicos
 app.use(express.json({ 
@@ -113,6 +108,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOpti
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
+});
+
+// Endpoint de health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
 // Rutas principales

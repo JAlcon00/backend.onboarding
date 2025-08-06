@@ -320,4 +320,220 @@ export class SolicitudController {
       message: 'Producto eliminado de la solicitud',
     });
   });
+
+  // ==================== CONTROLADORES ADMINISTRATIVOS AVANZADOS ====================
+
+  /**
+   * Dashboard ejecutivo con métricas en tiempo real
+   */
+  public static getDashboardEjecutivo = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filtros = {
+        fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+        fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+        productos: req.query.productos ? (req.query.productos as string).split(',') : undefined
+      };
+
+      const dashboard = await SolicitudService.getDashboardEjecutivo(filtros);
+
+      logInfo('Dashboard ejecutivo consultado', { filtros, usuario: (req as any).user?.usuario_id });
+
+      res.json({
+        success: true,
+        message: 'Dashboard ejecutivo obtenido exitosamente',
+        data: dashboard,
+      });
+    } catch (error) {
+      logError('Error al obtener dashboard ejecutivo', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Análisis avanzado de rentabilidad por producto
+   */
+  public static getAnalisisRentabilidad = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filtros = {
+        fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+        fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+        productos: req.query.productos ? (req.query.productos as string).split(',') : undefined
+      };
+
+      const analisis = await SolicitudService.getAnalisisRentabilidad(filtros);
+
+      logInfo('Análisis de rentabilidad consultado', { filtros, usuario: (req as any).user?.usuario_id });
+
+      res.json({
+        success: true,
+        message: 'Análisis de rentabilidad obtenido exitosamente',
+        data: analisis,
+      });
+    } catch (error) {
+      logError('Error al obtener análisis de rentabilidad', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Gestión inteligente de carga de trabajo
+   */
+  public static getGestionCargaTrabajo = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const gestion = await SolicitudService.getGestionCargaTrabajo();
+
+      logInfo('Gestión de carga de trabajo consultada', { usuario: (req as any).user?.usuario_id });
+
+      res.json({
+        success: true,
+        message: 'Gestión de carga de trabajo obtenida exitosamente',
+        data: gestion,
+      });
+    } catch (error) {
+      logError('Error al obtener gestión de carga de trabajo', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Sistema de alertas inteligentes
+   */
+  public static getAlertasInteligentes = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const alertas = await SolicitudService.getAlertasInteligentes();
+
+      logInfo('Alertas inteligentes consultadas', { usuario: (req as any).user?.usuario_id });
+
+      res.json({
+        success: true,
+        message: 'Alertas inteligentes obtenidas exitosamente',
+        data: alertas,
+      });
+    } catch (error) {
+      logError('Error al obtener alertas inteligentes', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Reporte de performance comparativo
+   */
+  public static getReportePerformanceComparativo = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filtros = {
+        fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+        fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined
+      };
+
+      const reporte = await SolicitudService.getReportePerformanceComparativo(filtros);
+
+      logInfo('Reporte de performance comparativo consultado', { filtros, usuario: (req as any).user?.usuario_id });
+
+      res.json({
+        success: true,
+        message: 'Reporte de performance comparativo obtenido exitosamente',
+        data: reporte,
+      });
+    } catch (error) {
+      logError('Error al obtener reporte de performance comparativo', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Asignación inteligente de solicitudes
+   */
+  public static asignarSolicitudInteligente = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id: solicitudId } = solicitudIdSchema.parse(req.params);
+      
+      const resultado = await SolicitudService.asignarSolicitudInteligente(solicitudId);
+
+      logInfo('Asignación inteligente ejecutada', { 
+        solicitud_id: solicitudId, 
+        usuario_ejecutor: (req as any).user?.usuario_id,
+        usuario_recomendado: resultado.usuario_recomendado?.usuario_id
+      });
+
+      res.json({
+        success: true,
+        message: 'Asignación inteligente ejecutada exitosamente',
+        data: resultado,
+      });
+    } catch (error) {
+      logError('Error en asignación inteligente', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
+
+  /**
+   * Exportación de datos de solicitudes para análisis
+   */
+  public static exportarDatosSolicitudes = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filtros = {
+        fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
+        fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
+        productos: req.query.productos ? (req.query.productos as string).split(',') : undefined,
+        estatus: req.query.estatus ? (req.query.estatus as string).split(',') : undefined
+      };
+
+      const formato = req.query.formato as string || 'json';
+
+      if (formato === 'csv') {
+        // Implementar exportación a CSV
+        const solicitudes = await SolicitudService.getSolicitudesParaExportacion({
+          limite: 1000,
+          ...filtros
+        });
+
+        const csvData = solicitudes.map((solicitud: any) => ({
+          solicitud_id: solicitud.solicitud_id,
+          cliente_nombre: solicitud.cliente_nombre,
+          cliente_email: solicitud.cliente_email,
+          estatus: solicitud.estatus,
+          fecha_creacion: solicitud.fecha_creacion,
+          productos: solicitud.productos,
+          monto_total: solicitud.monto_total
+        }));
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="solicitudes_export.csv"');
+        
+        // Conversión simple a CSV
+        const csvHeader = Object.keys(csvData[0] || {}).join(',') + '\n';
+        const csvRows = csvData.map((row: any) => Object.values(row).join(',')).join('\n');
+        
+        res.send(csvHeader + csvRows);
+      } else {
+        // Exportación JSON
+        const solicitudes = await SolicitudService.getSolicitudesParaExportacion({
+          limite: 1000,
+          ...filtros
+        });
+
+        logInfo('Datos de solicitudes exportados', { 
+          formato, 
+          total_registros: solicitudes.length,
+          usuario: (req as any).user?.usuario_id 
+        });
+
+        res.json({
+          success: true,
+          message: 'Datos exportados exitosamente',
+          data: {
+            exportacion: {
+              fecha: new Date().toISOString(),
+              total_registros: solicitudes.length,
+              filtros_aplicados: filtros
+            },
+            solicitudes: solicitudes
+          },
+        });
+      }
+    } catch (error) {
+      logError('Error al exportar datos de solicitudes', error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
 }

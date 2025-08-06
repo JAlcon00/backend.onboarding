@@ -75,6 +75,13 @@ PUT    /api/clientes/:id                 # Actualizar cliente
 DELETE /api/clientes/:id                 # Eliminar cliente
 ```
 
+### Gestión de Ingresos
+```
+POST   /api/clientes/:id/ingresos        # Registrar ingreso
+GET    /api/clientes/:id/ingresos        # Obtener ingresos del cliente
+GET    /api/clientes/:id/ingresos/estadisticas # Obtener estadísticas de ingresos
+```
+
 ### Búsqueda Especializada
 ```
 GET    /api/clientes/buscar/rfc/:rfc     # Buscar por RFC
@@ -86,12 +93,6 @@ GET    /api/clientes/estadisticas        # Estadísticas generales
 GET    /api/clientes/:id/completitud     # Validar completitud del expediente
 GET    /api/clientes/:id/onboarding      # Estado completo del onboarding
 GET    /api/clientes/:id/onboarding/verificar  # Verificar si puede proceder
-```
-
-### Gestión de Ingresos
-```
-POST   /api/clientes/:id/ingresos        # Registrar ingreso
-GET    /api/clientes/:id/ingresos        # Obtener ingresos del cliente
 ```
 
 ## 🔐 Autorización y Permisos

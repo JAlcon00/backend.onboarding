@@ -3,7 +3,6 @@ import asyncHandler from 'express-async-handler';
 import { Cliente } from './cliente.model';
 import { IngresoCliente } from './ingresoCliente.model';
 import { ClienteService } from './cliente.service';
-import { CompletitudService } from '../../services/completitud.service';
 import { 
   createClienteSchema, 
   updateClienteSchema, 
@@ -232,43 +231,39 @@ export class ClienteController {
       return;
     }
     
-    const cliente = await Cliente.findOne({
-      where: { rfc: rfc.toUpperCase() },
-      include: [
-        { 
-          model: IngresoCliente, 
-          as: 'ingresos',
-          limit: 1,
-          order: [['fecha_registro', 'DESC']]
-        },
-      ],
-    });
-    
-    if (cliente) {
-      res.json({
-        success: true,
-        data: {
-          cliente_encontrado: true,
-          cliente,
-          completitud: cliente.getPorcentajeCompletitud(),
-          datos_basicos_completos: cliente.isDatosBasicosCompletos(),
-          direccion_completa: cliente.isDireccionCompleta(),
-        },
-        message: 'Cliente encontrado',
-      });
-    } else {
-      res.json({
-        success: true,
-        data: {
-          cliente_encontrado: false,
-          rfc: rfc.toUpperCase(),
-        },
-        message: 'Cliente no encontrado - puede crear nuevo registro',
-      });
-    }
-  });
-
-  // Evaluar cliente recurrente por RFC
+    try {
+      const cliente = await ClienteService.buscarClientePorRFC(rfc);
+      
+        if (cliente) {
+          res.json({
+            success: true,
+            data: {
+              cliente_encontrado: true,
+              cliente,
+              completitud: cliente.getPorcentajeCompletitud(),
+              datos_basicos_completos: cliente.isDatosBasicosCompletos(),
+              direccion_completa: cliente.isDireccionCompleta(),
+            },
+            message: 'Cliente encontrado',
+          });
+        } else {
+          res.json({
+            success: true,
+            data: {
+              cliente_encontrado: false,
+              rfc: rfc.toUpperCase(),
+            },
+            message: 'Cliente no encontrado - puede crear nuevo registro',
+          });
+        }
+      } catch (error: any) {
+        res.status(500).json({
+          success: false,
+          message: 'Error al buscar cliente por RFC',
+          error: error.message,
+        });
+      }
+    });  // Evaluar cliente recurrente por RFC
   public static evaluarClienteRecurrente = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { rfc } = req.params;
     
@@ -281,7 +276,7 @@ export class ClienteController {
     }
     
     try {
-      const evaluacion = await CompletitudService.evaluarClienteRecurrente(rfc);
+      const evaluacion = await ClienteService.evaluarClienteRecurrente(rfc);
       
       res.json({
         success: true,
@@ -302,15 +297,9 @@ export class ClienteController {
     const { id } = clienteIdSchema.parse(req.params);
     
     try {
-      const completitud = await CompletitudService.evaluarCompletitud(id);
+      const cliente = await ClienteService.getClienteById(id);
       
-      res.json({
-        success: true,
-        data: completitud,
-        message: completitud.mensaje_completitud,
-      });
-    } catch (error: any) {
-      if (error.message === 'Cliente no encontrado') {
+      if (!cliente) {
         res.status(404).json({
           success: false,
           message: 'Cliente no encontrado',
@@ -318,6 +307,19 @@ export class ClienteController {
         return;
       }
       
+      const completitud = {
+        porcentaje_completitud: cliente.getPorcentajeCompletitud(),
+        datos_basicos_completos: cliente.isDatosBasicosCompletos(),
+        direccion_completa: cliente.isDireccionCompleta(),
+        mensaje_completitud: `Expediente ${cliente.getPorcentajeCompletitud()}% completo`
+      };
+      
+      res.json({
+        success: true,
+        data: completitud,
+        message: completitud.mensaje_completitud,
+      });
+    } catch (error: any) {
       res.status(500).json({
         success: false,
         message: 'Error al evaluar completitud del expediente',
@@ -397,6 +399,34 @@ export class ClienteController {
         res.status(500).json({
           success: false,
           message: 'Error al verificar el proceso de onboarding',
+        });
+      }
+    }
+  });
+
+  // Obtener estadísticas de ingresos de un cliente específico
+  public static getEstadisticasIngresos = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = clienteIdSchema.parse(req.params);
+    
+    try {
+      const estadisticas = await ClienteService.getEstadisticasIngresos(id);
+      
+      res.json({
+        success: true,
+        data: estadisticas,
+        message: 'Estadísticas de ingresos obtenidas exitosamente',
+      });
+    } catch (error: any) {
+      if (error.message === 'Cliente no encontrado') {
+        res.status(404).json({
+          success: false,
+          message: 'Cliente no encontrado',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Error al obtener estadísticas de ingresos',
+          error: error.message,
         });
       }
     }

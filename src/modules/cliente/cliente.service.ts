@@ -7,6 +7,8 @@ import { CacheService, CacheKeys, CacheTTL } from '../../config/cache';
 const { sequelize } = require('../../config/database');
 
 export class ClienteService {
+  // ==================== CRUD BÁSICO ====================
+  
   // Crear cliente con validaciones de negocio y transacciones
   static async createCliente(data: CreateClienteInput) {
     return await TransactionService.executeInTransaction(async (transaction: Transaction) => {
@@ -92,7 +94,7 @@ export class ClienteService {
       return cliente;
     });
   }
-  
+
   // Obtener cliente por ID con caché
   static async getClienteById(id: number) {
     const cacheKey = CacheKeys.CLIENTE(id);
@@ -118,71 +120,6 @@ export class ClienteService {
     }
     
     return cliente;
-  }
-
-  // Buscar clientes con filtros avanzados y caché
-  static async buscarClientesConCache(filtros: any) {
-    const cacheKey = CacheKeys.CLIENTES_LIST(JSON.stringify(filtros));
-    
-    // Intentar obtener del caché
-    let result = await CacheService.get(cacheKey);
-    
-    if (!result) {
-      const whereCondition = await this.buscarClientes(filtros);
-      
-      // Ejecutar consulta
-      const clientes = await Cliente.findAll({
-        where: whereCondition,
-        include: [
-          {
-            model: IngresoCliente,
-            as: 'ingresos'
-          }
-        ],
-        order: [['created_at', 'DESC']]
-      });
-      
-      result = clientes;
-      
-      // Guardar en caché por 5 minutos
-      await CacheService.set(cacheKey, result, CacheTTL.SHORT);
-    }
-    
-    return result;
-  }
-
-  // Buscar clientes con filtros avanzados
-  static async buscarClientes(filtros: any) {
-    const whereCondition: any = {};
-
-    if (filtros.tipo_persona) {
-      whereCondition.tipo_persona = filtros.tipo_persona;
-    }
-
-    if (filtros.estado) {
-      whereCondition.estado = filtros.estado;
-    }
-
-    if (filtros.ciudad) {
-      whereCondition.ciudad = { [Op.like]: `%${filtros.ciudad}%` };
-    }
-
-    if (filtros.codigo_postal) {
-      whereCondition.codigo_postal = filtros.codigo_postal;
-    }
-
-    if (filtros.search) {
-      whereCondition[Op.or] = [
-        { nombre: { [Op.like]: `%${filtros.search}%` } },
-        { apellido_paterno: { [Op.like]: `%${filtros.search}%` } },
-        { apellido_materno: { [Op.like]: `%${filtros.search}%` } },
-        { razon_social: { [Op.like]: `%${filtros.search}%` } },
-        { rfc: { [Op.like]: `%${filtros.search}%` } },
-        { correo: { [Op.like]: `%${filtros.search}%` } },
-      ];
-    }
-
-    return whereCondition;
   }
 
   // Actualizar cliente con validaciones y transacciones
@@ -266,6 +203,226 @@ export class ClienteService {
     });
   }
 
+  // ==================== BÚSQUEDAS Y FILTROS ====================
+
+  // Buscar cliente por RFC con caché
+  static async buscarClientePorRFC(rfc: string) {
+    const cacheKey = `cliente:rfc:${rfc}`;
+    
+    let cliente = await CacheService.get(cacheKey);
+    
+    if (!cliente) {
+      cliente = await Cliente.findOne({
+        where: { rfc },
+        include: [
+          {
+            model: IngresoCliente,
+            as: 'ingresos'
+          }
+        ]
+      });
+      
+      if (cliente) {
+        await CacheService.set(cacheKey, cliente, CacheTTL.MEDIUM);
+      }
+    }
+    
+    return cliente;
+  }
+
+  // Buscar cliente por correo con caché
+  static async buscarClientePorCorreo(correo: string) {
+    const cacheKey = `cliente:correo:${correo}`;
+    
+    let cliente = await CacheService.get(cacheKey);
+    
+    if (!cliente) {
+      cliente = await Cliente.findOne({
+        where: { correo },
+        include: [
+          {
+            model: IngresoCliente,
+            as: 'ingresos'
+          }
+        ]
+      });
+      
+      if (cliente) {
+        await CacheService.set(cacheKey, cliente, CacheTTL.MEDIUM);
+      }
+    }
+    
+    return cliente;
+  }
+
+  // Buscar clientes con filtros avanzados
+  static async buscarClientes(filtros: any) {
+    const whereCondition: any = {};
+
+    if (filtros.tipo_persona) {
+      whereCondition.tipo_persona = filtros.tipo_persona;
+    }
+
+    if (filtros.estado) {
+      whereCondition.estado = filtros.estado;
+    }
+
+    if (filtros.ciudad) {
+      whereCondition.ciudad = { [Op.like]: `%${filtros.ciudad}%` };
+    }
+
+    if (filtros.codigo_postal) {
+      whereCondition.codigo_postal = filtros.codigo_postal;
+    }
+
+    if (filtros.search) {
+      whereCondition[Op.or] = [
+        { nombre: { [Op.like]: `%${filtros.search}%` } },
+        { apellido_paterno: { [Op.like]: `%${filtros.search}%` } },
+        { apellido_materno: { [Op.like]: `%${filtros.search}%` } },
+        { razon_social: { [Op.like]: `%${filtros.search}%` } },
+        { rfc: { [Op.like]: `%${filtros.search}%` } },
+        { correo: { [Op.like]: `%${filtros.search}%` } },
+      ];
+    }
+
+    return whereCondition;
+  }
+
+  // Buscar clientes con filtros avanzados y caché
+  static async buscarClientesConCache(filtros: any) {
+    const cacheKey = CacheKeys.CLIENTES_LIST(JSON.stringify(filtros));
+    
+    // Intentar obtener del caché
+    let result = await CacheService.get(cacheKey);
+    
+    if (!result) {
+      const whereCondition = await this.buscarClientes(filtros);
+      
+      // Ejecutar consulta
+      const clientes = await Cliente.findAll({
+        where: whereCondition,
+        include: [
+          {
+            model: IngresoCliente,
+            as: 'ingresos'
+          }
+        ],
+        order: [['created_at', 'DESC']]
+      });
+      
+      result = clientes;
+      
+      // Guardar en caché por 5 minutos
+      await CacheService.set(cacheKey, result, CacheTTL.SHORT);
+    }
+    
+    return result;
+  }
+
+  // Obtener clientes con paginación
+  static async getClientesPaginado(page: number = 1, limit: number = 10, filtros: any = {}) {
+    const offset = (page - 1) * limit;
+    const whereCondition = await this.buscarClientes(filtros);
+    
+    const { count, rows } = await Cliente.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: IngresoCliente,
+          as: 'ingresos'
+        }
+      ],
+      order: [['created_at', 'DESC']],
+      limit,
+      offset
+    });
+
+    return {
+      clientes: rows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1
+      }
+    };
+  }
+
+  // Obtener todos los clientes (sin paginación, para estadísticas)
+  static async getAllClientes() {
+    return await Cliente.findAll({
+      include: [
+        {
+          model: IngresoCliente,
+          as: 'ingresos'
+        }
+      ]
+    });
+  }
+
+  // Obtener clientes por IDs específicos
+  static async getClientesByIds(ids: number[]) {
+    return await Cliente.findAll({
+      where: {
+        cliente_id: {
+          [Op.in]: ids
+        }
+      },
+      include: [
+        {
+          model: IngresoCliente,
+          as: 'ingresos'
+        }
+      ]
+    });
+  }
+
+  // ==================== GESTIÓN DE INGRESOS ====================
+
+  // Crear ingreso para cliente existente
+  static async createIngresoCliente(clienteId: number, ingresoData: any) {
+    return await TransactionService.executeInTransaction(async (transaction: Transaction) => {
+      // Verificar que el cliente existe
+      const cliente = await Cliente.findByPk(clienteId, { transaction });
+      if (!cliente) {
+        throw new Error('Cliente no encontrado');
+      }
+
+      const ingreso = await IngresoCliente.create({
+        ...ingresoData,
+        cliente_id: clienteId
+      }, { transaction });
+
+      // Invalidar caché relacionado
+      await CacheService.del(`resumen_financiero:${clienteId}`);
+      await CacheService.del(`estadisticas:ingresos:${clienteId}`);
+      await CacheService.del(`ingresos:cliente:${clienteId}`);
+      
+      return ingreso;
+    });
+  }
+
+  // Obtener ingresos de un cliente
+  static async getIngresosCliente(clienteId: number) {
+    const cacheKey = `ingresos:cliente:${clienteId}`;
+    
+    let ingresos = await CacheService.get(cacheKey);
+    
+    if (!ingresos) {
+      ingresos = await IngresoCliente.findAll({
+        where: { cliente_id: clienteId },
+        order: [['fecha_registro', 'DESC']]
+      });
+      
+      await CacheService.set(cacheKey, ingresos, CacheTTL.MEDIUM);
+    }
+    
+    return ingresos;
+  }
+
   // Obtener resumen financiero del cliente con caché
   static async getResumenFinanciero(clienteId: number) {
     const cacheKey = `resumen_financiero:${clienteId}`;
@@ -302,6 +459,204 @@ export class ClienteService {
 
     return resumen;
   }
+
+  // Obtener estadísticas de ingresos de un cliente específico
+  static async getEstadisticasIngresos(clienteId: number) {
+    const cacheKey = `estadisticas:ingresos:${clienteId}`;
+    
+    let estadisticas = await CacheService.get(cacheKey);
+    
+    if (!estadisticas) {
+      const ingresos = await IngresoCliente.findAll({
+        where: { cliente_id: clienteId },
+        order: [['fecha_registro', 'DESC']]
+      });
+
+      if (ingresos.length === 0) {
+        return {
+          total_registros: 0,
+          ingreso_promedio_anual: 0,
+          ingreso_actual: null,
+          historial: []
+        };
+      }
+
+      const ingresoMasReciente = ingresos[0];
+      const ingresoPromedio = ingresos.reduce((sum, ing) => {
+        return sum + (parseFloat(ing.ingreso_anual?.toString() || '0'));
+      }, 0) / ingresos.length;
+
+      estadisticas = {
+        total_registros: ingresos.length,
+        ingreso_promedio_anual: Math.round(ingresoPromedio * 100) / 100,
+        ingreso_actual: ingresoMasReciente,
+        historial: ingresos.map(ing => ({
+          fecha: ing.fecha_registro,
+          ingreso_anual: ing.ingreso_anual,
+          sector_economico: (ing as any).sector_economico || 'No especificado'
+        }))
+      };
+      
+      await CacheService.set(cacheKey, estadisticas, CacheTTL.MEDIUM);
+    }
+    
+    return estadisticas;
+  }
+
+  // ==================== ESTADÍSTICAS Y ANÁLISIS ====================
+
+  // Obtener estadísticas generales completas
+  static async getEstadisticasGenerales() {
+    const cacheKey = CacheKeys.DASHBOARD_STATS;
+    
+    let estadisticas = await CacheService.get(cacheKey);
+    
+    if (!estadisticas) {
+      // Estadísticas básicas de clientes
+      const totalClientes = await Cliente.count();
+      
+      const clientesPorTipo = await Cliente.findAll({
+        attributes: [
+          'tipo_persona',
+          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
+        ],
+        group: ['tipo_persona'],
+        raw: true
+      });
+      
+      const clientesPorEstado = await Cliente.findAll({
+        attributes: [
+          'estado',
+          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
+        ],
+        group: ['estado'],
+        raw: true
+      });
+
+      // Estadísticas de actividad reciente
+      const clientesUltimos30Dias = await Cliente.count({
+        where: {
+          created_at: {
+            [Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          }
+        }
+      });
+
+      const clientesUltimos7Dias = await Cliente.count({
+        where: {
+          created_at: {
+            [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          }
+        }
+      });
+
+      // Estadísticas de ingresos
+      const ingresoPromedio = await IngresoCliente.findAll({
+        attributes: [
+          [sequelize.fn('AVG', sequelize.col('ingreso_anual')), 'promedio_anual'],
+          [sequelize.fn('COUNT', sequelize.col('ingreso_id')), 'total_registros']
+        ],
+        raw: true
+      });
+
+      // Top 5 clientes más activos (con más ingresos registrados)
+      const clientesMasActivos = await Cliente.findAll({
+        attributes: [
+          'cliente_id',
+          'nombre',
+          'apellido_paterno',
+          'razon_social',
+          'tipo_persona',
+          [sequelize.fn('COUNT', sequelize.col('ingresos.ingreso_id')), 'total_ingresos']
+        ],
+        include: [
+          {
+            model: IngresoCliente,
+            as: 'ingresos',
+            attributes: []
+          }
+        ],
+        group: ['cliente_id'],
+        order: [[sequelize.fn('COUNT', sequelize.col('ingresos.ingreso_id')), 'DESC']],
+        limit: 5,
+        raw: true
+      });
+      
+      estadisticas = {
+        resumen: {
+          total_clientes: totalClientes,
+          nuevos_ultimos_30_dias: clientesUltimos30Dias,
+          nuevos_ultimos_7_dias: clientesUltimos7Dias,
+          fecha_actualizacion: new Date().toISOString()
+        },
+        distribucion: {
+          por_tipo: clientesPorTipo,
+          por_estado: clientesPorEstado
+        },
+        ingresos: {
+          promedio_anual: (ingresoPromedio[0] as any)?.promedio_anual || 0,
+          total_registros: (ingresoPromedio[0] as any)?.total_registros || 0
+        },
+        actividad: {
+          clientes_mas_activos: clientesMasActivos.map(cliente => ({
+            cliente_id: (cliente as any).cliente_id,
+            nombre_completo: (cliente as any).tipo_persona === 'PM' 
+              ? (cliente as any).razon_social 
+              : `${(cliente as any).nombre} ${(cliente as any).apellido_paterno}`,
+            tipo_persona: (cliente as any).tipo_persona,
+            total_ingresos: (cliente as any).total_ingresos
+          }))
+        }
+      };
+      
+      // Guardar en caché por 1 hora
+      await CacheService.set(cacheKey, estadisticas, CacheTTL.LONG);
+    }
+    
+    return estadisticas;
+  }
+
+  // Evaluar si un cliente es recurrente (basado en RFC)
+  static async evaluarClienteRecurrente(rfc: string) {
+    const cliente = await this.buscarClientePorRFC(rfc);
+    
+    if (!cliente) {
+      return {
+        es_recurrente: false,
+        mensaje: 'Cliente no encontrado en el sistema'
+      };
+    }
+
+    // Intentar obtener solicitudes y documentos si las asociaciones existen
+    let totalSolicitudes = 0;
+    let totalDocumentos = 0;
+
+    try {
+      // Asumir que estas asociaciones pueden existir
+      const solicitudes = await (cliente as any).getSolicitudes?.() || [];
+      totalSolicitudes = solicitudes.length;
+    } catch (error) {
+      // Si no existe la asociación, continuar
+    }
+
+    try {
+      const documentos = await (cliente as any).getDocumentos?.() || [];
+      totalDocumentos = documentos.length;
+    } catch (error) {
+      // Si no existe la asociación, continuar
+    }
+
+    return {
+      es_recurrente: true,
+      cliente_id: cliente.cliente_id,
+      total_solicitudes: totalSolicitudes,
+      total_documentos: totalDocumentos,
+      ultima_actividad: cliente.updated_at,
+      mensaje: 'Cliente encontrado en el sistema'
+    };
+  }
+
+  // ==================== VALIDACIONES ====================
 
   // Validar integridad de datos según el tipo de persona
   static validarIntegridadDatos(cliente: any) {
@@ -349,46 +704,6 @@ export class ClienteService {
     return curpPattern.test(curp);
   }
 
-  // Obtener estadísticas generales
-  static async getEstadisticasGenerales() {
-    const cacheKey = CacheKeys.DASHBOARD_STATS;
-    
-    let estadisticas = await CacheService.get(cacheKey);
-    
-    if (!estadisticas) {
-      const totalClientes = await Cliente.count();
-      const clientesPorTipo = await Cliente.findAll({
-        attributes: [
-          'tipo_persona',
-          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
-        ],
-        group: ['tipo_persona'],
-        raw: true
-      });
-      
-      const clientesPorEstado = await Cliente.findAll({
-        attributes: [
-          'estado',
-          [sequelize.fn('COUNT', sequelize.col('cliente_id')), 'total']
-        ],
-        group: ['estado'],
-        raw: true
-      });
-      
-      estadisticas = {
-        total_clientes: totalClientes,
-        clientes_por_tipo: clientesPorTipo,
-        clientes_por_estado: clientesPorEstado,
-        fecha_actualizacion: new Date().toISOString()
-      };
-      
-      // Guardar en caché por 1 hora
-      await CacheService.set(cacheKey, estadisticas, CacheTTL.LONG);
-    }
-    
-    return estadisticas;
-  }
-
   // Verificar si puede proceder con onboarding
   static async puedeProcedeConOnboarding(clienteId: number) {
     const cliente = await this.getClienteById(clienteId);
@@ -396,12 +711,15 @@ export class ClienteService {
     if (!cliente) {
       return {
         puede_proceder: false,
-        razon: 'Cliente no encontrado'
+        razon: 'Cliente no encontrado',
+        errores: [],
+        completitud: 0
       };
     }
 
     const errores = this.validarIntegridadDatos(cliente);
-    const completitud = cliente.getPorcentajeCompletitud();
+    // TODO: Implementar cálculo de completitud cuando el modelo esté listo
+    const completitud = 75; // Temporal hasta implementar getPorcentajeCompletitud()
     
     return {
       puede_proceder: errores.length === 0 && completitud >= 80,

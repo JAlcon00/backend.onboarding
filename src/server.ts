@@ -13,11 +13,7 @@ let server: Server;
 async function startServer() {
 
   try {
-    // Configurar CORS antes de cualquier ruta
-    app.use(cors({
-      origin: 'http://localhost:5173', // Cambia si tu frontend está en otro origen
-      credentials: true
-    }));
+    // CORS se configura en app.ts
 
     // Probar conexión a la base de datos
     await testDbConnection();

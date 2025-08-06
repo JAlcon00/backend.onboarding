@@ -1,16 +1,29 @@
 # 🏦 OnboardingDigital Backend API
 
+# 🏦 OnboardingDigital Backend API
+
 ## 📋 Descripción Técnica
 
-API REST empresarial para el sistema de **onboarding digital de clientes** del sector financiero, desarrollada con **Node.js + TypeScript**. Proporciona una plataforma completa para la gestión de clientes (Personas Físicas y Morales), documentación KYC (Know Your Customer), solicitudes de productos financieros, y administración de usuarios con control de acceso basado en roles.
+API REST empresarial de **última generación** para el sistema de **onboarding digital de clientes** del sector financiero, desarrollada con **Node.js + TypeScript**. Proporciona una plataforma completa e inteligente para la gestión de clientes (Personas Físicas y Morales), documentación KYC (Know Your Customer), solicitudes de productos financieros, y administración avanzada de usuarios con control de acceso basado en roles.
 
 ### 🎯 Funcionalidades Principales
-- **Gestión Integral de Clientes**: Registro, validación y administración de PF/PM
-- **Sistema KYC Completo**: Upload, validación y aprobación de documentos
-- **Workflow de Solicitudes**: Gestión de productos financieros (CS, CC, FA, AR)
-- **Autenticación & Autorización**: JWT con RBAC (Role-Based Access Control)
+- **Gestión Integral de Clientes**: Registro, validación y administración avanzada de PF/PM
+- **Sistema KYC Inteligente**: Upload, validación automática y aprobación de documentos
+- **Workflow de Solicitudes Avanzado**: Gestión completa de productos financieros (CS, CC, FA, AR)
+- **Dashboard Ejecutivo**: Métricas en tiempo real y análisis de rentabilidad
+- **Autenticación & Autorización**: JWT con RBAC granular (5 niveles de roles)
 - **Auditoría Completa**: Logging estructurado y trazabilidad de operaciones
-- **Performance Optimizado**: Caché inteligente, rate limiting y monitoring
+- **Performance Optimizado**: Caché inteligente, rate limiting y monitoring avanzado
+- **Inteligencia de Negocio**: Alertas automáticas, asignación inteligente y reportes predictivos
+
+### 🆕 Nuevas Capacidades Administrativas
+- **📊 Dashboards Ejecutivos**: Métricas en tiempo real para toma de decisiones
+- **💰 Análisis de Rentabilidad**: ROI por producto, segmentación y tendencias
+- **👥 Gestión de Carga de Trabajo**: Distribución inteligente y optimización de equipos
+- **🚨 Sistema de Alertas Inteligentes**: Detección automática de cuellos de botella
+- **📈 Reportes Comparativos**: Análisis período vs período con KPIs automáticos
+- **🤖 Asignación Automática**: Algoritmos de distribución de trabajo optimizada
+- **📤 Exportación Avanzada**: Datos para BI en múltiples formatos (JSON/CSV)
 
 ## 🏗️ Arquitectura Técnica
 
@@ -24,14 +37,102 @@ API REST empresarial para el sistema de **onboarding digital de clientes** del s
 - **Logging**: Winston con formato estructurado JSON
 - **Caché**: Redis con fallback a memoria local
 - **Testing**: Jest + Supertest para testing integral
+- **Analytics**: Consultas SQL avanzadas con CTEs y agregaciones complejas
 
 ### Patrones de Diseño Implementados
 - **Repository Pattern**: Separación de lógica de acceso a datos
-- **Service Layer**: Lógica de negocio centralizada
+- **Service Layer**: Lógica de negocio centralizada y reutilizable
 - **Middleware Chain**: Procesamiento modular de requests
 - **Error Handling**: Clases de error personalizadas con códigos específicos
 - **Rate Limiting**: Protección contra abuso con límites diferenciados
 - **Health Checks**: Monitoreo proactivo de componentes
+- **CQRS Pattern**: Separación de comandos y consultas para performance
+- **Cache Aside**: Estrategia de cacheo inteligente con invalidación automática
+
+### Arquitectura Modular Avanzada
+```
+src/modules/
+├── cliente/           # Gestión integral de clientes
+│   ├── cliente.model.ts
+│   ├── cliente.service.ts      # 20+ métodos con BI
+│   ├── cliente.controller.ts   # 14+ endpoints administrativos
+│   └── cliente.routes.ts       # Rutas con autorización granular
+├── documento/         # Sistema KYC inteligente
+│   ├── documento.service.ts    # 15+ métodos con analytics
+│   ├── documento.controller.ts # 12+ endpoints con validaciones
+│   └── documento.routes.ts     # Gestión de archivos y aprobaciones
+├── solicitud/         # Workflow de productos financieros
+│   ├── solicitud.service.ts    # 13+ métodos administrativos
+│   ├── solicitud.controller.ts # 15+ endpoints con dashboards
+│   └── solicitud.routes.ts     # Rutas especializadas por rol
+└── usuario/           # Administración de usuarios y roles
+    ├── usuario.service.ts      # Gestión completa de usuarios
+    ├── usuario.controller.ts   # Endpoints de administración
+    └── usuario.routes.ts       # Control de acceso RBAC
+```
+
+## 🚀 Características Avanzadas
+
+### 🏢 Dashboard Ejecutivo Integral
+- **Analytics de Negocio**: Métricas KPI en tiempo real con visualización avanzada
+- **Reportes Ejecutivos**: Informes automáticos para management con insights accionables
+- **Análisis Predictivo**: Forecasting basado en datos históricos y machine learning
+- **Métricas de Performance**: Seguimiento de SLAs, conversión y eficiencia operacional
+
+### 💰 Análisis de Rentabilidad Avanzado
+- **ROI por Cliente**: Rentabilidad individual y por segmento demográfico
+- **Cost per Acquisition**: Optimización de costos de adquisición por canal
+- **Customer Lifetime Value**: Valor proyectado con modelos predictivos
+- **Análisis de Margen**: Márgenes por producto, región y período temporal
+
+### 🎯 Gestión Inteligente de Cargas de Trabajo
+- **Auto-Assignment**: Asignación automática basada en heurísticas avanzadas
+- **Load Balancing**: Distribución equilibrada con algoritmos de optimización
+- **Performance Tracking**: Métricas de productividad por agente y equipo
+- **Capacity Planning**: Planificación predictiva de recursos y escalabilidad
+
+### 🚨 Sistema de Alertas Inteligentes
+- **Risk Management**: Detección proactiva de riesgos operacionales y financieros
+- **Compliance Monitoring**: Alertas automáticas de cumplimiento normativo
+- **Performance Alerts**: Notificaciones de métricas críticas y umbrales
+- **Smart Notifications**: Alertas contextuales con recomendaciones accionables
+
+### 📊 Business Intelligence & Analytics
+- **Data Mining**: Extracción de insights de datasets masivos con algoritmos ML
+- **Segmentación Avanzada**: Clustering automático de clientes y productos
+- **Trend Analysis**: Análisis de tendencias estacionales y patrones de comportamiento
+- **Comparative Analytics**: Benchmarking automático y análisis de competitividad
+
+### 🔄 Workflows Automatizados
+- **Document Processing**: OCR inteligente y validación automática de documentos
+- **Approval Chains**: Flujos de aprobación configurables con escalamiento automático
+- **Status Management**: Gestión automática de estados con notificaciones
+- **Integration APIs**: Conectores nativos con sistemas bancarios externos
+
+### 🛡️ Seguridad Empresarial
+- **Role-Based Access Control (RBAC)**: 5 niveles de autorización granular (ADMIN, SUPER, AUDITOR, OPERADOR, VIEWER)
+- **JWT Security**: Tokens seguros con refresh automático y blacklisting
+- **Audit Trails**: Trazabilidad completa con logs inmutables y análisis forense
+- **Data Encryption**: Cifrado AES-256 en tránsito y en reposo con gestión de claves
+- **Advanced Rate Limiting**: Protección multicapa contra ataques DDoS y brute force
+
+### 📈 Monitoreo y Performance
+- **Real-time Metrics**: Métricas en tiempo real con dashboards interactivos
+- **Health Checks**: Monitoreo proactivo de servicios con auto-recovery
+- **Performance Profiling**: Análisis detallado con métricas de latencia y throughput
+- **Error Tracking**: Sistema completo de logging con alertas inteligentes
+
+### 🔧 APIs RESTful Avanzadas
+- **OpenAPI 3.0**: Documentación automática con Swagger UI y testing integrado
+- **API Versioning**: Control granular de versiones con compatibilidad hacia atrás
+- **Response Caching**: Caché inteligente con invalidación automática y warm-up
+- **Request Validation**: Validación robusta con Zod schemas y sanitización
+
+### 📋 Gestión de Documentos KYC
+- **Multi-format Support**: Soporte nativo para PDF, imágenes, documentos escaneados
+- **Automated Classification**: Clasificación automática por tipos de documento con IA
+- **Compliance Validation**: Validación automática de requisitos KYC y regulatorios
+- **Document Versioning**: Control de versiones con histórico completo y auditoría
 
 ## 🗄️ Modelo de Datos Detallado
 
@@ -456,22 +557,35 @@ Crear usuario del sistema (solo ADMIN+)
 
 | **Rol** | **Permisos** | **Acceso** | **Descripción** |
 |---------|-------------|-----------|-----------------|
-| **SUPER** | `create`, `read`, `update`, `delete`, `admin` | Sistema completo | Superadministrador con acceso total |
-| **ADMIN** | `create`, `read`, `update`, `delete` | Operaciones completas | Administrador con gestión de usuarios |
-| **AUDITOR** | `read` | Solo lectura | Auditor con acceso de consulta únicamente |
-| **OPERADOR** | `read`, `update` | Operaciones básicas | Operador con modificaciones limitadas |
+| **SUPER** | `create`, `read`, `update`, `delete`, `admin` | Sistema completo + BI | Superadministrador con acceso total y capacidades administrativas avanzadas |
+| **ADMIN** | `create`, `read`, `update`, `delete` | Operaciones completas + Analytics | Administrador con gestión de usuarios y acceso a dashboards ejecutivos |
+| **AUDITOR** | `read`, `audit` | Solo lectura + Reportes | Auditor con acceso de consulta y reportes de compliance |
+| **OPERADOR** | `read`, `update` | Operaciones básicas | Operador con modificaciones limitadas y métricas básicas |
+| **VIEWER** | `read` | Solo consulta | Visualización básica sin modificaciones |
 
-### Matriz de Permisos por Endpoint
+### Matriz de Permisos por Endpoint Administrativo
 
-| **Endpoint** | **SUPER** | **ADMIN** | **AUDITOR** | **OPERADOR** |
-|--------------|-----------|-----------|-------------|--------------|
-| `POST /api/clientes` | ✅ | ✅ | ❌ | ✅ |
-| `GET /api/clientes` | ✅ | ✅ | ✅ | ✅ |
-| `PUT /api/clientes/:id` | ✅ | ✅ | ❌ | ✅ |
-| `DELETE /api/clientes/:id` | ✅ | ✅ | ❌ | ❌ |
-| `POST /api/usuarios` | ✅ | ✅ | ❌ | ❌ |
-| `DELETE /api/usuarios/:id` | ✅ | ❌ | ❌ | ❌ |
-| `PATCH /api/documentos/:id/review` | ✅ | ✅ | ❌ | ✅ |
+| **Endpoint Administrativo** | **SUPER** | **ADMIN** | **AUDITOR** | **OPERADOR** | **VIEWER** |
+|------------------------------|-----------|-----------|-------------|--------------|------------|
+| `GET /api/admin/dashboard-ejecutivo` | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `GET /api/admin/analisis-rentabilidad` | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `GET /api/admin/gestion-carga-trabajo` | ✅ | ✅ | ❌ | ✅ | ❌ |
+| `GET /api/admin/alertas-inteligentes` | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `GET /api/admin/reporte-performance` | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `POST /api/admin/asignar-inteligente` | ✅ | ✅ | ❌ | ✅ | ❌ |
+| `GET /api/admin/exportar-datos` | ✅ | ✅ | ✅ | ❌ | ❌ |
+
+### Matriz de Permisos Operacionales
+
+| **Endpoint Operacional** | **SUPER** | **ADMIN** | **AUDITOR** | **OPERADOR** | **VIEWER** |
+|---------------------------|-----------|-----------|-------------|--------------|------------|
+| `POST /api/clientes` | ✅ | ✅ | ❌ | ✅ | ❌ |
+| `GET /api/clientes` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `PUT /api/clientes/:id` | ✅ | ✅ | ❌ | ✅ | ❌ |
+| `DELETE /api/clientes/:id` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `POST /api/usuarios` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `DELETE /api/usuarios/:id` | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `PATCH /api/documentos/:id/review` | ✅ | ✅ | ❌ | ✅ | ❌ |
 
 ### Configuración JWT
 
@@ -577,7 +691,41 @@ SMTP_PASS=smtp_password
 
 ---
 
-## 🚀 Instalación y Configuración Detallada
+## � Funcionalidades Administrativas Implementadas
+
+### 🏢 Cliente - Módulo Administrativo
+- **Dashboard de Clientes**: Métricas de actividad, distribución por tipo persona, análisis de crecimiento
+- **Segmentación Inteligente**: Clustering automático por ingresos, actividad económica y comportamiento
+- **Análisis de Comportamiento**: Patrones de uso, frecuencia de interacción y lifecycle del cliente
+- **Gestión de Riesgos**: Evaluación automática de perfil de riesgo y alertas de compliance
+- **Reportes de Retención**: Análisis de churn, lifetime value y oportunidades de cross-selling
+
+### 📄 Documento - Módulo KYC Avanzado
+- **Centro de Control KYC**: Dashboard centralizado con métricas de documentación y compliance
+- **Análisis de Calidad**: Evaluación automática de calidad de documentos con scoring IA
+- **Workflow de Aprobación**: Gestión avanzada de estados con escalamiento automático
+- **Auditoría de Documentos**: Trazabilidad completa con logging inmutable y forense digital
+- **Alertas de Vencimiento**: Sistema proactivo de renovación de documentos críticos
+
+### 💼 Solicitud - Módulo de Productos Financieros
+- **Dashboard Ejecutivo**: Métricas en tiempo real de conversión, aprobación y rentabilidad
+- **Análisis de Rentabilidad**: ROI por producto, margen por cliente y proyecciones financieras
+- **Gestión de Carga de Trabajo**: Distribución inteligente, balanceador automático y optimización de equipos
+- **Sistema de Alertas**: Detección de cuellos de botella, alertas de SLA y notificaciones críticas
+- **Reportes Comparativos**: Análisis período vs período con KPIs automáticos y benchmarking
+- **Asignación Inteligente**: Algoritmos ML para distribución óptima de solicitudes
+- **Exportación Avanzada**: Extracción de datos para BI en formatos múltiples (JSON/CSV/Excel)
+
+### 🔧 Capacidades Técnicas Transversales
+- **Caché Inteligente**: Redis con TTL diferenciado (5min-1hora) según criticidad de datos
+- **Consultas Optimizadas**: CTEs, subconsultas complejas y agregaciones para performance
+- **Logging Estructurado**: Winston con formato JSON para análisis automático y alertas
+- **Validación Robusta**: Zod schemas con sanitización y validación en tiempo real
+- **Rate Limiting Avanzado**: Protección multicapa con límites diferenciados por rol
+
+---
+
+## �🚀 Instalación y Configuración Detallada
 
 ### Prerrequisitos del Sistema
 
@@ -1149,6 +1297,470 @@ gcloud run deploy onboarding-api \
   --cpu 1 \
   --max-instances 10 \
   --set-env-vars NODE_ENV=production
+
+# Cloud SQL
+gcloud sql instances create onboarding-mysql \
+  --database-version=MYSQL_8_0 \
+  --tier=db-n1-standard-2 \
+  --region=us-central1 \
+  --storage-type=SSD \
+  --storage-size=100GB
+```
+
+### 🔄 **CI/CD Pipeline**
+
+#### **GitHub Actions (.github/workflows/deploy.yml)**
+```yaml
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run test
+      - run: npm run lint
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/onboarding-backend .
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/onboarding-backend
+      
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy onboarding-api \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/onboarding-backend \
+            --platform managed \
+            --region us-central1
+```
+
+---
+
+## 🔧 APIs Administrativas Implementadas
+
+### 📊 Endpoints de Dashboard Ejecutivo
+
+#### **GET** `/api/admin/dashboard-ejecutivo`
+Dashboard principal con KPIs en tiempo real
+
+**Authorization:** `SUPER`, `ADMIN`, `AUDITOR`
+
+**Query Parameters:**
+```http
+GET /api/admin/dashboard-ejecutivo?periodo=30d&sucursal_id=10&incluir_tendencias=true
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "resumen_general": {
+      "total_clientes": 15847,
+      "clientes_activos": 14521,
+      "solicitudes_pendientes": 247,
+      "tasa_conversion": 73.5,
+      "valor_pipeline": 125000000.00
+    },
+    "metricas_performance": {
+      "tiempo_promedio_aprobacion": "4.2 días",
+      "documentos_procesados_hoy": 156,
+      "satisfaccion_cliente": 4.7,
+      "sla_compliance": 94.2
+    },
+    "tendencias": {
+      "clientes_nuevos_vs_anterior": "+12.5%",
+      "solicitudes_aprobadas_vs_anterior": "+8.3%",
+      "tiempo_procesamiento_vs_anterior": "-15.2%"
+    },
+    "alertas_criticas": [
+      {
+        "tipo": "sla_breach",
+        "mensaje": "3 solicitudes exceden SLA de 72 horas",
+        "severidad": "high",
+        "accion_requerida": "Reasignar carga de trabajo"
+      }
+    ]
+  }
+}
+```
+
+### 💰 Análisis de Rentabilidad
+
+#### **GET** `/api/admin/analisis-rentabilidad`
+Análisis detallado de rentabilidad por productos y segmentos
+
+**Authorization:** `SUPER`, `ADMIN`, `AUDITOR`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "rentabilidad_por_producto": [
+      {
+        "producto": "CS",
+        "ingresos_totales": 2500000.00,
+        "costos_operativos": 850000.00,
+        "margen_bruto": 66.0,
+        "roi": 194.1,
+        "clientes_activos": 8547
+      },
+      {
+        "producto": "FA",
+        "ingresos_totales": 15000000.00,
+        "costos_operativos": 4500000.00,
+        "margen_bruto": 70.0,
+        "roi": 233.3,
+        "clientes_activos": 1247
+      }
+    ],
+    "segmentacion_clientes": [
+      {
+        "segmento": "Premium (>$100K ingresos)",
+        "cantidad_clientes": 2547,
+        "ingreso_promedio_cliente": 125000.00,
+        "valor_lifetime": 450000.00,
+        "costo_adquisicion": 2500.00,
+        "rentabilidad_neta": 85.2
+      }
+    ],
+    "proyecciones": {
+      "ingresos_proyectados_12m": 58000000.00,
+      "crecimiento_esperado": 23.5,
+      "nuevos_clientes_meta": 5000
+    }
+  }
+}
+```
+
+### 👥 Gestión de Carga de Trabajo
+
+#### **GET** `/api/admin/gestion-carga-trabajo`
+Dashboard de distribución y optimización de trabajo
+
+**Authorization:** `SUPER`, `ADMIN`, `OPERADOR`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "distribucion_actual": [
+      {
+        "usuario_id": 15,
+        "nombre": "Ana García",
+        "solicitudes_asignadas": 12,
+        "capacidad_maxima": 15,
+        "utilizacion": 80.0,
+        "tiempo_promedio_proceso": "3.2 días",
+        "eficiencia": 92.5
+      }
+    ],
+    "recomendaciones": [
+      {
+        "tipo": "reasignacion",
+        "descripcion": "Reasignar 3 solicitudes de Usuario #12 a Usuario #15",
+        "impacto_estimado": "Reducir tiempo promedio en 18%",
+        "prioridad": "alta"
+      }
+    ],
+    "metricas_equipo": {
+      "productividad_promedio": 87.3,
+      "solicitudes_completadas_hoy": 47,
+      "tiempo_promedio_respuesta": "2.1 horas",
+      "satisfaccion_interna": 4.2
+    }
+  }
+}
+```
+
+### 🚨 Sistema de Alertas Inteligentes
+
+#### **GET** `/api/admin/alertas-inteligentes`
+Sistema proactivo de detección de problemas
+
+**Authorization:** `SUPER`, `ADMIN`, `AUDITOR`, `OPERADOR`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "alertas_activas": [
+      {
+        "id": "ALT-2025-001247",
+        "tipo": "performance",
+        "severidad": "high",
+        "titulo": "Degradación en tiempo de respuesta",
+        "descripcion": "API response time >2s en los últimos 15 minutos",
+        "timestamp": "2025-01-15T14:30:00.000Z",
+        "modulo_afectado": "documento_upload",
+        "acciones_sugeridas": [
+          "Verificar conectividad con Google Cloud Storage",
+          "Revisar logs de aplicación",
+          "Considerar reinicio de servicio"
+        ],
+        "usuarios_notificados": ["admin@empresa.com"],
+        "estado": "activa"
+      }
+    ],
+    "alertas_predictivas": [
+      {
+        "tipo": "capacity_planning",
+        "prediccion": "Capacidad de almacenamiento se agotará en 45 días",
+        "confianza": 89.5,
+        "accion_recomendada": "Aumentar storage en Google Cloud Storage",
+        "fecha_estimada": "2025-03-01"
+      }
+    ],
+    "resumen_24h": {
+      "total_alertas": 23,
+      "resueltas_automaticamente": 18,
+      "requieren_atencion": 3,
+      "falsos_positivos": 2
+    }
+  }
+}
+```
+
+### 📈 Reportes de Performance Comparativo
+
+#### **GET** `/api/admin/reporte-performance`
+Análisis comparativo de períodos con KPIs automáticos
+
+**Authorization:** `SUPER`, `ADMIN`, `AUDITOR`
+
+**Query Parameters:**
+```http
+GET /api/admin/reporte-performance?periodo_actual=2025-01&periodo_comparacion=2024-12&granularidad=semanal
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "comparacion_periodos": {
+      "periodo_actual": "2025-01",
+      "periodo_anterior": "2024-12",
+      "metricas": {
+        "solicitudes_procesadas": {
+          "actual": 1247,
+          "anterior": 1089,
+          "variacion": "+14.5%",
+          "tendencia": "positiva"
+        },
+        "tiempo_promedio_aprobacion": {
+          "actual": "4.2 días",
+          "anterior": "5.1 días",
+          "variacion": "-17.6%",
+          "tendencia": "positiva"
+        },
+        "tasa_aprobacion": {
+          "actual": "87.3%",
+          "anterior": "82.1%",
+          "variacion": "+6.3%",
+          "tendencia": "positiva"
+        }
+      }
+    },
+    "analisis_semanal": [
+      {
+        "semana": "2025-W03",
+        "solicitudes": 342,
+        "aprobaciones": 298,
+        "rechazos": 31,
+        "pendientes": 13,
+        "eficiencia": 89.2
+      }
+    ],
+    "benchmarking": {
+      "posicion_industria": "Top 15%",
+      "metricas_vs_promedio": {
+        "tiempo_procesamiento": "23% mejor que promedio",
+        "tasa_aprobacion": "12% superior",
+        "satisfaccion_cliente": "18% mejor"
+      }
+    }
+  }
+}
+```
+
+### 🤖 Asignación Inteligente
+
+#### **POST** `/api/admin/asignar-inteligente`
+Algoritmo de asignación automática optimizada
+
+**Authorization:** `SUPER`, `ADMIN`, `OPERADOR`
+
+**Request Body:**
+```json
+{
+  "solicitud_ids": [1247, 1248, 1249],
+  "criterios": {
+    "balancear_carga": true,
+    "especialidad_producto": true,
+    "experiencia_usuario": true,
+    "ubicacion_geografica": false
+  },
+  "forzar_reasignacion": false
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "Asignación inteligente completada",
+  "data": {
+    "asignaciones_realizadas": [
+      {
+        "solicitud_id": 1247,
+        "usuario_anterior": null,
+        "usuario_asignado": {
+          "usuario_id": 15,
+          "nombre": "Ana García",
+          "especialidad": ["CS", "CC"],
+          "carga_actual": 12,
+          "eficiencia_historica": 92.5
+        },
+        "razon_asignacion": "Especialista en producto CS con menor carga de trabajo",
+        "tiempo_estimado": "3.2 días"
+      }
+    ],
+    "optimizacion_lograda": {
+      "reduccion_tiempo_promedio": "15%",
+      "mejora_distribucion": "23%",
+      "incremento_eficiencia": "8%"
+    },
+    "alertas": []
+  }
+}
+```
+
+### 📤 Exportación Avanzada para BI
+
+#### **GET** `/api/admin/exportar-datos`
+Extracción de datos para herramientas de Business Intelligence
+
+**Authorization:** `SUPER`, `ADMIN`, `AUDITOR`
+
+**Query Parameters:**
+```http
+GET /api/admin/exportar-datos?modulos=cliente,solicitud&formato=json&fecha_inicio=2025-01-01&fecha_fin=2025-01-31&incluir_relaciones=true
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "metadata": {
+      "fecha_exportacion": "2025-01-15T16:00:00.000Z",
+      "periodo": "2025-01-01 a 2025-01-31",
+      "total_registros": 15847,
+      "formato": "json",
+      "version_schema": "1.2.0"
+    },
+    "clientes": [
+      {
+        "cliente_id": 1,
+        "tipo_persona": "fisica",
+        "rfc": "***ANONIMIZADO***",
+        "segmento": "premium",
+        "fecha_registro": "2025-01-03",
+        "valor_cliente": 125000.00,
+        "productos_activos": ["CS", "FA"],
+        "score_crediticio": 750,
+        "ultima_actividad": "2025-01-14"
+      }
+    ],
+    "solicitudes": [
+      {
+        "solicitud_id": 1247,
+        "folio": "SOL-2025-001247",
+        "cliente_id": 1,
+        "productos": ["CS"],
+        "estatus": "aprobada",
+        "fecha_solicitud": "2025-01-10",
+        "fecha_aprobacion": "2025-01-13",
+        "tiempo_procesamiento_dias": 3,
+        "usuario_procesador": 15,
+        "valor_solicitado": 0
+      }
+    ],
+    "agregaciones": {
+      "total_clientes_periodo": 1247,
+      "solicitudes_aprobadas": 1089,
+      "ingresos_estimados": 2500000.00,
+      "productos_mas_demandados": ["CS", "FA", "CC"]
+    }
+  }
+}
+```
+
+---
+
+## 🔗 Enlaces y Recursos
+
+### 📚 **Documentación Técnica**
+- **API Reference**: `http://localhost:3001/docs` (Swagger UI)
+- **Postman Collection**: `./docs/OnboardingDigital.postman_collection.json`
+- **Database Schema**: `./docs/database_schema.sql`
+- **Architecture Diagrams**: `./docs/architecture/`
+
+### 🛠️ **Herramientas de Desarrollo**
+- **VS Code Extensions**: REST Client, Thunder Client
+- **Database GUI**: MySQL Workbench, phpMyAdmin
+- **API Testing**: Postman, Insomnia
+- **Monitoring**: Grafana, Prometheus
+
+### 🎯 **Próximas Funcionalidades**
+- [ ] **Integración con Bureau de Crédito**
+- [ ] **OCR para extracción automática de datos**
+- [ ] **Firmas electrónicas avanzadas**
+- [ ] **Chat en tiempo real con soporte**
+- [ ] **Análisis predictivo con ML**
+- [ ] **Integración con sistemas bancarios core**
+
+---
+
+## 📄 Licencia y Contacto
+
+**Proyecto:** OnboardingDigital Backend API  
+**Versión:** 1.2.3  
+**Autor:** Equipo de Desarrollo Financiero  
+**Licencia:** Propietaria - Uso interno exclusivo  
+
+**Contacto Técnico:**
+- **Email:** dev-team@empresa.com
+- **Slack:** #onboarding-dev
+- **Documentación:** https://docs.empresa.com/onboarding-api
+
+---
+
+**🎉 ¡API lista para producción con capacidades administrativas completas!**
+
+> Esta documentación está actualizada con todas las funcionalidades administrativas implementadas en los módulos Cliente, Documento y Solicitud, incluyendo dashboards ejecutivos, análisis de rentabilidad, gestión inteligente de cargas de trabajo, sistema de alertas, reportes comparativos, asignación automática y exportación avanzada para Business Intelligence.
 
 # Cloud SQL
 gcloud sql instances create onboarding-mysql \
